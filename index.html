@@ -84,8 +84,15 @@
 
     /* Pulse & Animation Utility */
     @keyframes pulse-subtle {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.85; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.85;
+      }
     }
 
     .animate-pulse-subtle {
@@ -93,8 +100,13 @@
     }
 
     @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
+      0% {
+        background-position: -200% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
     }
 
     .skeleton-shimmer {
@@ -104,8 +116,15 @@
     }
 
     @keyframes tableFadeIn {
-      from { opacity: 0.3; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0.3;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .table-fade-in {
@@ -353,7 +372,8 @@
           </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div
+          class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex items-center space-x-2">
             <div class="w-48 h-5 rounded-md skeleton-shimmer"></div>
           </div>
@@ -377,25 +397,64 @@
               </thead>
               <tbody class="divide-y divide-slate-100">
                 <tr class="animate-pulse">
-                  <td class="py-4 px-4 sm:px-6"><div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-lg skeleton-shimmer"></div><div class="w-16 h-4 rounded-md skeleton-shimmer"></div></div></td>
-                  <td class="py-4 px-4"><div class="w-36 h-4 rounded-md skeleton-shimmer"></div></td>
-                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
-                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
-                  <td class="py-4 px-4 sm:px-6 text-center"><div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 sm:px-6">
+                    <div class="flex items-center space-x-2">
+                      <div class="w-8 h-8 rounded-lg skeleton-shimmer"></div>
+                      <div class="w-16 h-4 rounded-md skeleton-shimmer"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="w-36 h-4 rounded-md skeleton-shimmer"></div>
+                  </td>
+                  <td class="py-4 px-4 text-center">
+                    <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+                  </td>
+                  <td class="py-4 px-4 text-center">
+                    <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center">
+                    <div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div>
+                  </td>
                 </tr>
                 <tr class="animate-pulse">
-                  <td class="py-4 px-4 sm:px-6"><div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-lg skeleton-shimmer"></div><div class="w-16 h-4 rounded-md skeleton-shimmer"></div></div></td>
-                  <td class="py-4 px-4"><div class="w-32 h-4 rounded-md skeleton-shimmer"></div></td>
-                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
-                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
-                  <td class="py-4 px-4 sm:px-6 text-center"><div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 sm:px-6">
+                    <div class="flex items-center space-x-2">
+                      <div class="w-8 h-8 rounded-lg skeleton-shimmer"></div>
+                      <div class="w-16 h-4 rounded-md skeleton-shimmer"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="w-32 h-4 rounded-md skeleton-shimmer"></div>
+                  </td>
+                  <td class="py-4 px-4 text-center">
+                    <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+                  </td>
+                  <td class="py-4 px-4 text-center">
+                    <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center">
+                    <div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div>
+                  </td>
                 </tr>
                 <tr class="animate-pulse">
-                  <td class="py-4 px-4 sm:px-6"><div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-lg skeleton-shimmer"></div><div class="w-16 h-4 rounded-md skeleton-shimmer"></div></div></td>
-                  <td class="py-4 px-4"><div class="w-40 h-4 rounded-md skeleton-shimmer"></div></td>
-                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
-                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
-                  <td class="py-4 px-4 sm:px-6 text-center"><div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 sm:px-6">
+                    <div class="flex items-center space-x-2">
+                      <div class="w-8 h-8 rounded-lg skeleton-shimmer"></div>
+                      <div class="w-16 h-4 rounded-md skeleton-shimmer"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-4">
+                    <div class="w-40 h-4 rounded-md skeleton-shimmer"></div>
+                  </td>
+                  <td class="py-4 px-4 text-center">
+                    <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+                  </td>
+                  <td class="py-4 px-4 text-center">
+                    <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+                  </td>
+                  <td class="py-4 px-4 sm:px-6 text-center">
+                    <div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -891,8 +950,8 @@
         <!-- Submit and Cancel Buttons -->
         <div class="pt-2 space-y-2">
           <button type="button" id="pinSubmitBtn" disabled onclick="submitPinLogin()"
-            class="w-full py-3 px-4 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-md transition transform active:scale-98">
-            เข้าสู่ระบบ
+            class="w-full py-3 px-4 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-md transition transform active:scale-98 flex items-center justify-center">
+            <span>เข้าสู่ระบบ</span>
           </button>
           <button type="button" onclick="closeLoginModal()"
             class="w-full py-2.5 px-4 rounded-xl font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition">
@@ -1270,8 +1329,14 @@
       if (pin.length !== 6) return;
 
       const submitBtn = document.getElementById('pinSubmitBtn');
+      input.disabled = true;
       submitBtn.disabled = true;
-      submitBtn.textContent = 'กำลังตรวจสอบข้อมูล…';
+      submitBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2 animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+        </svg>
+        <span>กำลังตรวจสอบข้อมูล…</span>
+      `;
 
       try {
         let userResult = null;
@@ -1321,8 +1386,9 @@
         console.error('Login error:', err);
         swalShowError('เข้าสู่ระบบไม่สำเร็จ', err.message);
       } finally {
+        input.disabled = false;
         submitBtn.disabled = false;
-        submitBtn.textContent = 'เข้าสู่ระบบ';
+        submitBtn.innerHTML = '<span>เข้าสู่ระบบ</span>';
       }
     }
 
@@ -1948,7 +2014,7 @@
         if (summaryTbody) {
           summaryTbody.innerHTML = renderTableSkeletonRows(AppState.classrooms.length || 6);
         }
-        
+
         await loadInitialData();
       } catch (err) {
         console.error('Save inspection error:', err);
@@ -2225,12 +2291,12 @@
     async function handleReloadTodayData() {
       const icon = document.getElementById('reloadSpinnerIcon');
       const tbody = document.getElementById('classroomSummaryTbody');
-      
+
       if (icon) icon.classList.add('animate-spin');
       if (tbody) {
         tbody.innerHTML = renderTableSkeletonRows(AppState.classrooms.length || 6);
       }
-      
+
       try {
         await new Promise(r => setTimeout(r, 400)); // Smooth UX transition
         await loadInitialData();
