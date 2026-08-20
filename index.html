@@ -1942,7 +1942,13 @@
         resetInspectionForm(type);
         await swalShowSuccess('บันทึกผลสำเร็จ!', 'ข้อมูลการตรวจสอบถูกบันทึกเรียบร้อยแล้ว', 1500);
 
+        // สลับไปยังแท็บสรุปผลวันนี้และแสดง Skeleton Shimmer ทันทีระหว่างรอรีโหลดข้อมูลใหม่
         switchTab('todaySummary');
+        const summaryTbody = document.getElementById('classroomSummaryTbody');
+        if (summaryTbody) {
+          summaryTbody.innerHTML = renderTableSkeletonRows(AppState.classrooms.length || 6);
+        }
+        
         await loadInitialData();
       } catch (err) {
         console.error('Save inspection error:', err);
