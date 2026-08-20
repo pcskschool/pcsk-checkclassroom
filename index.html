@@ -84,19 +84,32 @@
 
     /* Pulse & Animation Utility */
     @keyframes pulse-subtle {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.85;
-      }
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
     }
 
     .animate-pulse-subtle {
       animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .skeleton-shimmer {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+
+    @keyframes tableFadeIn {
+      from { opacity: 0.3; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .table-fade-in {
+      animation: tableFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     /* Fancybox Modal Fix */
@@ -304,7 +317,90 @@
     <!-- ========================================== -->
     <section id="section-todaySummary" class="tab-content transition-opacity duration-200">
       <div id="todaySummaryContainer" class="space-y-6">
-        <!-- Rendered dynamically by renderTodaySummary() -->
+        <!-- Default Initial Skeleton Loader (Shown immediately while loading) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div class="space-y-2 flex-grow">
+              <div class="w-24 h-3 rounded-md skeleton-shimmer"></div>
+              <div class="w-16 h-7 rounded-lg skeleton-shimmer"></div>
+              <div class="w-28 h-2 rounded-full skeleton-shimmer"></div>
+            </div>
+            <div class="w-12 h-12 rounded-xl skeleton-shimmer flex-shrink-0 ml-3"></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div class="space-y-2 flex-grow">
+              <div class="w-28 h-3 rounded-md skeleton-shimmer"></div>
+              <div class="w-16 h-7 rounded-lg skeleton-shimmer"></div>
+              <div class="w-24 h-2 rounded-full skeleton-shimmer"></div>
+            </div>
+            <div class="w-12 h-12 rounded-xl skeleton-shimmer flex-shrink-0 ml-3"></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div class="space-y-2 flex-grow">
+              <div class="w-24 h-3 rounded-md skeleton-shimmer"></div>
+              <div class="w-16 h-7 rounded-lg skeleton-shimmer"></div>
+              <div class="w-28 h-2 rounded-full skeleton-shimmer"></div>
+            </div>
+            <div class="w-12 h-12 rounded-xl skeleton-shimmer flex-shrink-0 ml-3"></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div class="space-y-2 flex-grow">
+              <div class="w-28 h-3 rounded-md skeleton-shimmer"></div>
+              <div class="w-16 h-7 rounded-lg skeleton-shimmer"></div>
+              <div class="w-24 h-2 rounded-full skeleton-shimmer"></div>
+            </div>
+            <div class="w-12 h-12 rounded-xl skeleton-shimmer flex-shrink-0 ml-3"></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center space-x-2">
+            <div class="w-48 h-5 rounded-md skeleton-shimmer"></div>
+          </div>
+          <div class="flex items-center space-x-2 w-full sm:w-auto">
+            <div class="w-20 h-8 rounded-xl skeleton-shimmer"></div>
+            <div class="w-44 h-8 rounded-xl skeleton-shimmer"></div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-3.5 px-4 sm:px-6">ห้อง</th>
+                  <th class="py-3.5 px-4">ครูที่ปรึกษา</th>
+                  <th class="py-3.5 px-4 text-center">คะแนนห้องเรียน</th>
+                  <th class="py-3.5 px-4 text-center">คะแนนเขตพื้นที่</th>
+                  <th class="py-3.5 px-4 sm:px-6 text-center">ดูข้อมูล</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr class="animate-pulse">
+                  <td class="py-4 px-4 sm:px-6"><div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-lg skeleton-shimmer"></div><div class="w-16 h-4 rounded-md skeleton-shimmer"></div></div></td>
+                  <td class="py-4 px-4"><div class="w-36 h-4 rounded-md skeleton-shimmer"></div></td>
+                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 sm:px-6 text-center"><div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div></td>
+                </tr>
+                <tr class="animate-pulse">
+                  <td class="py-4 px-4 sm:px-6"><div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-lg skeleton-shimmer"></div><div class="w-16 h-4 rounded-md skeleton-shimmer"></div></div></td>
+                  <td class="py-4 px-4"><div class="w-32 h-4 rounded-md skeleton-shimmer"></div></td>
+                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 sm:px-6 text-center"><div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div></td>
+                </tr>
+                <tr class="animate-pulse">
+                  <td class="py-4 px-4 sm:px-6"><div class="flex items-center space-x-2"><div class="w-8 h-8 rounded-lg skeleton-shimmer"></div><div class="w-16 h-4 rounded-md skeleton-shimmer"></div></div></td>
+                  <td class="py-4 px-4"><div class="w-40 h-4 rounded-md skeleton-shimmer"></div></td>
+                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 text-center"><div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div></td>
+                  <td class="py-4 px-4 sm:px-6 text-center"><div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1994,13 +2090,38 @@
                   <th class="py-3.5 px-4 sm:px-6 text-center">ดูข้อมูล</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody id="classroomSummaryTbody" class="divide-y divide-slate-100 table-fade-in">
                 ${renderClassroomSummaryRows()}
               </tbody>
             </table>
           </div>
         </div>
       `;
+    }
+
+    function renderTableSkeletonRows(rowCount = 6) {
+      return Array(rowCount).fill(0).map(() => `
+        <tr class="animate-pulse">
+          <td class="py-4 px-4 sm:px-6">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-lg skeleton-shimmer"></div>
+              <div class="w-16 h-4 rounded-md skeleton-shimmer"></div>
+            </div>
+          </td>
+          <td class="py-4 px-4">
+            <div class="w-28 sm:w-40 h-4 rounded-md skeleton-shimmer"></div>
+          </td>
+          <td class="py-4 px-4 text-center">
+            <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+          </td>
+          <td class="py-4 px-4 text-center">
+            <div class="w-24 h-6 rounded-full skeleton-shimmer mx-auto"></div>
+          </td>
+          <td class="py-4 px-4 sm:px-6 text-center">
+            <div class="w-28 h-7 rounded-xl skeleton-shimmer mx-auto"></div>
+          </td>
+        </tr>
+      `).join('');
     }
 
     function renderClassroomSummaryRows() {
@@ -2066,7 +2187,7 @@
         }
 
         return `
-          <tr class="hover:bg-slate-50/70 transition">
+          <tr class="hover:bg-slate-50/70 transition duration-150">
             <td class="py-4 px-4 sm:px-6 font-bold text-slate-800 whitespace-nowrap">
               <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold mr-2">
                 ${c.classroom}
@@ -2097,8 +2218,15 @@
 
     async function handleReloadTodayData() {
       const icon = document.getElementById('reloadSpinnerIcon');
+      const tbody = document.getElementById('classroomSummaryTbody');
+      
       if (icon) icon.classList.add('animate-spin');
+      if (tbody) {
+        tbody.innerHTML = renderTableSkeletonRows(AppState.classrooms.length || 6);
+      }
+      
       try {
+        await new Promise(r => setTimeout(r, 400)); // Smooth UX transition
         await loadInitialData();
         await swalShowSuccess('อัปเดตข้อมูลล่าสุดแล้ว', '', 1000);
       } finally {
