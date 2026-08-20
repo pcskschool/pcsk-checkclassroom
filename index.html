@@ -1,0 +1,2407 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-50">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ระบบตรวจสอบความสะอาด - โรงเรียนประชาสงเคราะห์วิทยา</title>
+
+  <!-- 1. Google Fonts: Noto Sans Thai -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- 2. Tailwind CSS CDN v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans Thai"', 'sans-serif'],
+          },
+          colors: {
+            emerald: {
+              850: '#064e3b',
+              900: '#065f46',
+            },
+            primary: '#065f46',
+            'primary-light': '#10b981',
+            'primary-dark': '#064e3b',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- 3. SweetAlert2 CDN v11 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- 4. Fancybox 5 CDN (CSS & JS) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+
+  <!-- 5. Custom CSS Variables & Global Styles -->
+  <style>
+    :root {
+      --color-primary: #065f46;
+      --color-primary-light: #10b981;
+      --color-primary-dark: #064e3b;
+      --color-warning-custom: #f59e0b;
+      --color-danger-custom: #ef4444;
+      --spacing-xs: 4px;
+      --spacing-xl: 32px;
+    }
+
+    body {
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 1rem;
+      color: #1e293b;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Pulse & Animation Utility */
+    @keyframes pulse-subtle {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.85;
+      }
+    }
+
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Fancybox Modal Fix */
+    .fancybox__container {
+      z-index: 99999 !important;
+    }
+
+    .score-btn-active {
+      background-color: #065f46 !important;
+      color: #ffffff !important;
+      border-color: #065f46 !important;
+      transform: scale(1.05);
+      box-shadow: 0 2px 4px rgba(6, 95, 70, 0.25);
+    }
+
+    .score-btn-area-active {
+      background-color: #d97706 !important;
+      color: #ffffff !important;
+      border-color: #d97706 !important;
+      transform: scale(1.05);
+      box-shadow: 0 2px 4px rgba(217, 119, 6, 0.25);
+    }
+  </style>
+</head>
+
+<body class="flex flex-col min-h-screen bg-slate-50 antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- ================================================================= -->
+  <!-- 1. SYSTEM ANNOUNCEMENT BANNER -->
+  <!-- ================================================================= -->
+  <div id="announcementBanner"
+    class="hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 py-2.5 shadow-md transition-all duration-300">
+    <div class="max-w-7xl mx-auto flex items-center justify-between text-sm sm:text-base font-medium">
+      <div class="flex items-center space-x-2.5">
+        <span class="flex h-2.5 w-2.5 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+        </span>
+        <svg class="w-5 h-5 flex-shrink-0 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+        </svg>
+        <span id="announcementText" class="tracking-wide">ประกาศจากโรงเรียน</span>
+      </div>
+      <button onclick="hideAnnouncement()"
+        class="text-amber-100 hover:text-white focus:outline-none p-1 rounded-md transition-colors" title="ปิดประกาศ">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- 2. NAVBAR & HEADER -->
+  <!-- ================================================================= -->
+  <header class="bg-emerald-900 text-white shadow-lg sticky top-0 z-40 border-b border-emerald-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+
+        <!-- Logo and System Info -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          <div class="relative flex-shrink-0">
+            <img id="schoolLogo"
+              src="https://lh3.googleusercontent.com/pw/AP1GczNLx3RZP5eNhiYlYMV3vwy5-ukdanDiH3PHMeqMW2mhInkLQvJ38MefB4Agug-U-Xrk2Syj4BGcNcOWOS0DJZsEhBx6wXcWBOhOKzKGDXFQIWAExilHrEluIs9r4kgXwyySrWcTWBfpm5jIM939f_va=w497-h496-s-no-gm?authuser=0"
+              alt="Logo โรงเรียนประชาสงเคราะห์วิทยา"
+              class="w-10 h-10 sm:w-13 sm:h-13 rounded-full border-2 border-emerald-400 bg-white object-contain shadow-sm transition-transform hover:scale-105" />
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center space-x-2">
+              <h1 class="text-base sm:text-xl font-bold tracking-tight text-white line-clamp-1">ระบบตรวจสอบความสะอาด
+              </h1>
+              <span id="termBadge"
+                class="hidden sm:inline-block px-2 py-0.5 text-xs font-medium bg-emerald-700/80 text-emerald-100 rounded-full border border-emerald-600">ภาคเรียน
+                1/2569</span>
+            </div>
+            <p id="schoolName" class="text-xs sm:text-sm text-emerald-200 line-clamp-1">โรงเรียนประชาสงเคราะห์วิทยา</p>
+          </div>
+        </div>
+
+        <!-- Real-time Clock & Auth Action -->
+        <div class="flex items-center space-x-2 sm:space-x-4">
+          <!-- Real-time Thai Clock -->
+          <div
+            class="hidden md:flex flex-col text-right px-3 py-1 bg-emerald-950/40 rounded-lg border border-emerald-800/60">
+            <span id="liveClockTime"
+              class="text-sm font-semibold tracking-wider text-emerald-200 font-mono">--:--:--</span>
+            <span id="liveClockDate" class="text-xs text-emerald-300">-- ... ----</span>
+          </div>
+
+          <!-- User Info (Hidden before login) -->
+          <div id="userProfileBadge"
+            class="hidden flex items-center space-x-2.5 bg-emerald-800/90 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-full border border-emerald-600 shadow-sm transition">
+            <div
+              class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white shadow-inner">
+              <span id="userAvatarChar">ค</span>
+            </div>
+            <div class="flex flex-col text-left pr-1">
+              <span id="userNameText"
+                class="text-xs sm:text-sm font-semibold line-clamp-1 max-w-[120px] sm:max-w-[160px]">ชื่อผู้ใช้งาน</span>
+              <span id="userRoleBadge" class="text-[10px] text-emerald-200 leading-none">ครูผู้สอน</span>
+            </div>
+            <button onclick="handleLogout()"
+              class="text-emerald-300 hover:text-red-300 p-1 rounded-full hover:bg-emerald-700/50 transition-colors"
+              title="ออกจากระบบ">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Login Button (Visible before login) -->
+          <button id="loginBtn" onclick="openLoginModal()"
+            class="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-medium px-4 py-2 rounded-xl shadow-md transition transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-emerald-900">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span class="text-sm font-semibold">เข้าสู่ระบบด้วย PIN</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-emerald-950/70 border-t border-emerald-800/60 overflow-x-auto scrollbar-none">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex space-x-1 sm:space-x-2 py-1.5 text-xs sm:text-sm font-medium min-w-max">
+
+          <button onclick="switchTab('todaySummary')" id="tab-todaySummary"
+            class="nav-tab active-tab flex items-center space-x-1.5 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>สรุปข้อมูลวันนี้</span>
+          </button>
+
+          <!-- Tab ตรวจห้องเรียน (ปลดล็อกเมื่อล็อกอิน) -->
+          <button onclick="switchTab('roomCheck')" id="tab-roomCheck"
+            class="auth-required hidden nav-tab flex items-center space-x-1.5 px-3 py-2 rounded-lg text-emerald-200 hover:bg-emerald-800/60 transition-colors">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span>ตรวจห้องเรียน</span>
+          </button>
+
+          <!-- Tab ตรวจเขตพื้นที่ (ปลดล็อกเมื่อล็อกอิน) -->
+          <button onclick="switchTab('areaCheck')" id="tab-areaCheck"
+            class="auth-required hidden nav-tab flex items-center space-x-1.5 px-3 py-2 rounded-lg text-emerald-200 hover:bg-emerald-800/60 transition-colors">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>ตรวจเขตพื้นที่</span>
+          </button>
+
+          <!-- Tab สถิติห้องเรียน -->
+          <button onclick="switchTab('stats')" id="tab-stats"
+            class="nav-tab flex items-center space-x-1.5 px-3 py-2 rounded-lg text-emerald-200 hover:bg-emerald-800/60 transition-colors">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span>สถิติห้องเรียน</span>
+          </button>
+
+          <!-- Tab ตั้งค่าระบบ (เฉพาะ Role ครู/Admin) -->
+          <button onclick="switchTab('systemSettings')" id="tab-systemSettings"
+            class="admin-tab hidden nav-tab flex items-center space-x-1.5 px-3 py-2 rounded-lg text-emerald-200 hover:bg-emerald-800/60 transition-colors">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>ตั้งค่าระบบ</span>
+          </button>
+
+          <!-- Tab ตั้งค่าผู้ใช้งาน (เฉพาะ Role ครู/Admin) -->
+          <button onclick="switchTab('userSettings')" id="tab-userSettings"
+            class="admin-tab hidden nav-tab flex items-center space-x-1.5 px-3 py-2 rounded-lg text-emerald-200 hover:bg-emerald-800/60 transition-colors">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <span>ตั้งค่าผู้ใช้งาน</span>
+          </button>
+
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================================================================= -->
+  <!-- 3. MAIN CONTENT CONTAINER -->
+  <!-- ================================================================= -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================== -->
+    <!-- Tab 1: สรุปข้อมูลวันนี้ (Today's Summary Dashboard) -->
+    <!-- ========================================== -->
+    <section id="section-todaySummary" class="tab-content transition-opacity duration-200">
+      <div id="todaySummaryContainer" class="space-y-6">
+        <!-- Rendered dynamically by renderTodaySummary() -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 2: รายการตรวจสอบห้องเรียน (Classroom Inspection) -->
+    <!-- ========================================== -->
+    <section id="section-roomCheck" class="tab-content hidden transition-opacity duration-200">
+      <div class="max-w-4xl mx-auto space-y-6">
+
+        <!-- Form Header Card -->
+        <div
+          class="bg-gradient-to-r from-emerald-800 to-teal-800 rounded-2xl text-white p-6 shadow-lg relative overflow-hidden">
+          <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+            <div class="flex items-center space-x-3">
+              <div
+                class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold tracking-tight">บันทึกการตรวจสอบความสะอาดห้องเรียน</h2>
+                <p class="text-xs sm:text-sm text-emerald-200">ประเมินคะแนนความสะอาดตามเกณฑ์มาตรฐานประจำวัน</p>
+              </div>
+            </div>
+            <div class="text-left sm:text-right bg-emerald-950/40 px-3.5 py-2 rounded-xl border border-emerald-700/50">
+              <span class="text-xs text-emerald-300 block">ผู้ตรวจ: <b id="roomInspectorName"
+                  class="text-white font-semibold">-</b></span>
+              <span class="text-xs text-emerald-300 block">วันที่: <b id="roomInspectionDate"
+                  class="text-white font-medium">-</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Selector & Info Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div>
+            <label for="roomSelectTarget" class="block text-sm font-semibold text-slate-800 mb-1.5">
+              เลือกห้องเรียนที่ต้องการตรวจ <span class="text-red-500">*</span>
+            </label>
+            <select id="roomSelectTarget" onchange="handleTargetChange('room')"
+              class="w-full text-base font-medium py-3 px-4 bg-slate-50 border border-slate-300 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 transition">
+              <option value="">-- กรุณาเลือกห้องเรียน --</option>
+            </select>
+          </div>
+          <div id="roomAdvisorInfo"
+            class="hidden p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs sm:text-sm text-emerald-900 flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+              <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>ครูที่ปรึกษา: <b id="roomAdvisorNamesText">-</b></span>
+            </span>
+            <span id="roomAreaLinkText"
+              class="text-xs font-semibold px-2 py-0.5 bg-emerald-200 text-emerald-800 rounded-md">-</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Checklists Form Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-base sm:text-lg font-bold text-slate-800 flex items-center space-x-2">
+              <span>รายการเกณฑ์การให้คะแนน</span>
+              <span
+                class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">ห้องเรียน</span>
+            </h3>
+            <div class="text-right">
+              <span class="text-xs text-slate-500">คะแนนรวม: </span>
+              <span id="roomScorePreview" class="text-lg font-bold text-emerald-700">0 / 0</span>
+              <span id="roomPercentBadge"
+                class="ml-1.5 px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600">0%</span>
+            </div>
+          </div>
+
+          <div id="roomChecklistContainer" class="space-y-4">
+            <!-- Dynamic Items -->
+          </div>
+        </div>
+
+        <!-- Comments & Photos Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <!-- Textarea Comments -->
+          <div>
+            <label for="roomCommentInput" class="block text-sm font-semibold text-slate-800 mb-1.5">
+              ข้อเสนอแนะเพิ่มเติม / จุดที่ควรปรับปรุง (ถ้ามี)
+            </label>
+            <textarea id="roomCommentInput" rows="3"
+              placeholder="ระบุข้อเสนอแนะ เช่น ใต้โต๊ะครูยังมีเศษกระดาษ, กระดานดำลบสะอาดเรียบร้อยดีมาก..."
+              class="w-full text-sm py-2.5 px-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 transition"></textarea>
+          </div>
+
+          <!-- Photo Upload & Gallery Preview -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-sm font-semibold text-slate-800">
+                แนบรูปภาพประกอบการตรวจ <span class="text-xs font-normal text-slate-500">(สูงสุด 5 รูป, ปรับขนาดไม่เกิน
+                  1024px อัตโนมัติ)</span>
+              </label>
+              <span id="roomPhotoCount" class="text-xs font-medium text-slate-500">0/5 รูป</span>
+            </div>
+
+            <!-- Upload Area & Buttons -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="roomPhotoGallery">
+              <!-- Upload Trigger Box -->
+              <label id="roomUploadBox"
+                class="flex flex-col items-center justify-center h-28 border-2 border-dashed border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/50 rounded-xl cursor-pointer transition group">
+                <svg class="w-7 h-7 text-emerald-600 group-hover:scale-110 transition-transform mb-1" fill="none"
+                  stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-[11px] font-semibold text-emerald-800">เพิ่มรูปภาพ</span>
+                <input type="file" id="roomFileInput" multiple accept="image/*" capture="environment"
+                  onchange="handleImageUpload(event, 'room')" class="hidden" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit & Actions Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+          <button type="button" onclick="resetInspectionForm('room')"
+            class="w-full sm:w-auto px-6 py-3 rounded-xl font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 active:bg-slate-100 shadow-sm transition">
+            ล้างฟอร์ม
+          </button>
+          <button type="button" onclick="confirmAndSaveInspection('room')"
+            class="w-full sm:w-auto px-8 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 shadow-md transition transform active:scale-98 flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>บันทึกผลการตรวจสอบห้องเรียน</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 3: รายการตรวจเขตพื้นที่รับผิดชอบ (Area Inspection) -->
+    <!-- ========================================== -->
+    <section id="section-areaCheck" class="tab-content hidden transition-opacity duration-200">
+      <div class="max-w-4xl mx-auto space-y-6">
+
+        <!-- Form Header Card (Area) -->
+        <div
+          class="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 rounded-2xl text-white p-6 shadow-lg relative overflow-hidden">
+          <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+            <div class="flex items-center space-x-3">
+              <div
+                class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold tracking-tight">บันทึกการตรวจเขตพื้นที่รับผิดชอบ</h2>
+                <p class="text-xs sm:text-sm text-amber-100">ประเมินคะแนนความสะอาดเขตพื้นที่บริการและบริเวณทั่วไป</p>
+              </div>
+            </div>
+            <div class="text-left sm:text-right bg-amber-950/40 px-3.5 py-2 rounded-xl border border-amber-500/50">
+              <span class="text-xs text-amber-200 block">ผู้ตรวจ: <b id="areaInspectorName"
+                  class="text-white font-semibold">-</b></span>
+              <span class="text-xs text-amber-200 block">วันที่: <b id="areaInspectionDate"
+                  class="text-white font-medium">-</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Selector (Area) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div>
+            <label for="areaSelectTarget" class="block text-sm font-semibold text-slate-800 mb-1.5">
+              เลือกเขตพื้นที่รับผิดชอบที่ต้องการตรวจ <span class="text-red-500">*</span>
+            </label>
+            <select id="areaSelectTarget" onchange="handleTargetChange('area')"
+              class="w-full text-base font-medium py-3 px-4 bg-slate-50 border border-slate-300 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 transition">
+              <option value="">-- กรุณาเลือกเขตพื้นที่ --</option>
+            </select>
+          </div>
+          <div id="areaDescriptionInfo"
+            class="hidden p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs sm:text-sm text-amber-900 flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+              <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>รายละเอียด: <b id="areaDescriptionText">-</b></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Dynamic Checklists Form Card (Area) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-base sm:text-lg font-bold text-slate-800 flex items-center space-x-2">
+              <span>รายการเกณฑ์การให้คะแนน</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">เขตพื้นที่</span>
+            </h3>
+            <div class="text-right">
+              <span class="text-xs text-slate-500">คะแนนรวม: </span>
+              <span id="areaScorePreview" class="text-lg font-bold text-amber-700">0 / 0</span>
+              <span id="areaPercentBadge"
+                class="ml-1.5 px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600">0%</span>
+            </div>
+          </div>
+
+          <div id="areaChecklistContainer" class="space-y-4">
+            <!-- Dynamic Items -->
+          </div>
+        </div>
+
+        <!-- Comments & Photos Card (Area) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <!-- Textarea Comments -->
+          <div>
+            <label for="areaCommentInput" class="block text-sm font-semibold text-slate-800 mb-1.5">
+              ข้อเสนอแนะเพิ่มเติม / จุดที่ควรปรับปรุง (ถ้ามี)
+            </label>
+            <textarea id="areaCommentInput" rows="3" placeholder="ระบุข้อเสนอแนะเกี่ยวกับเขตพื้นที่..."
+              class="w-full text-sm py-2.5 px-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 transition"></textarea>
+          </div>
+
+          <!-- Photo Upload (Area) -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-sm font-semibold text-slate-800">
+                แนบรูปภาพประกอบการตรวจ <span class="text-xs font-normal text-slate-500">(สูงสุด 5 รูป, ปรับขนาดไม่เกิน
+                  1024px อัตโนมัติ)</span>
+              </label>
+              <span id="areaPhotoCount" class="text-xs font-medium text-slate-500">0/5 รูป</span>
+            </div>
+
+            <!-- Upload Area & Buttons -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="areaPhotoGallery">
+              <!-- Upload Trigger Box -->
+              <label id="areaUploadBox"
+                class="flex flex-col items-center justify-center h-28 border-2 border-dashed border-amber-300 bg-amber-50/50 hover:bg-amber-100/50 rounded-xl cursor-pointer transition group">
+                <svg class="w-7 h-7 text-amber-600 group-hover:scale-110 transition-transform mb-1" fill="none"
+                  stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-[11px] font-semibold text-amber-800">เพิ่มรูปภาพ</span>
+                <input type="file" id="areaFileInput" multiple accept="image/*" capture="environment"
+                  onchange="handleImageUpload(event, 'area')" class="hidden" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit & Actions Bar (Area) -->
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+          <button type="button" onclick="resetInspectionForm('area')"
+            class="w-full sm:w-auto px-6 py-3 rounded-xl font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 active:bg-slate-100 shadow-sm transition">
+            ล้างฟอร์ม
+          </button>
+          <button type="button" onclick="confirmAndSaveInspection('area')"
+            class="w-full sm:w-auto px-8 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 shadow-md transition transform active:scale-98 flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>บันทึกผลการตรวจเขตพื้นที่</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 4: สถิติห้องเรียน (Statistics & Ranking) -->
+    <!-- ========================================== -->
+    <section id="section-stats" class="tab-content hidden transition-opacity duration-200">
+      <div id="statsContainer" class="space-y-6">
+        <!-- Rendered dynamically by renderStatsTab() -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 5: ตั้งค่าระบบ (System Settings) -->
+    <!-- ========================================== -->
+    <section id="section-systemSettings" class="tab-content hidden transition-opacity duration-200">
+      <div id="systemSettingsContainer" class="space-y-6">
+        <!-- Rendered dynamically by renderSystemSettingsTab() -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Tab 6: ตั้งค่าผู้ใช้งาน (User Settings) -->
+    <!-- ========================================== -->
+    <section id="section-userSettings" class="tab-content hidden transition-opacity duration-200">
+      <div id="userSettingsContainer" class="space-y-6">
+        <!-- Rendered dynamically by renderUserSettingsTab() -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- 4. INSPECTION DETAIL & FANCYBOX MODAL -->
+  <!-- ================================================================= -->
+  <div id="inspectionDetailModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 transform transition-all scale-95 duration-300 max-h-[90vh] flex flex-col"
+      id="inspectionDetailCard">
+
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center space-x-3">
+          <div id="detailModalTypeIcon"
+            class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 id="detailModalTitle" class="text-lg sm:text-xl font-bold text-slate-800">รายละเอียดผลการตรวจสอบ</h3>
+            <p id="detailModalSubtitle" class="text-xs text-slate-500">บันทึกเมื่อ: --</p>
+          </div>
+        </div>
+        <button onclick="closeInspectionDetailModal()"
+          class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="overflow-y-auto py-4 space-y-4 flex-grow pr-1">
+
+        <!-- Summary Stat Box -->
+        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+          <div>
+            <span class="text-[11px] text-slate-500 block">ผู้ตรวจสอบ</span>
+            <span id="detailInspector" class="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1">-</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-500 block">คะแนนที่ได้</span>
+            <span id="detailScore" class="text-xs sm:text-sm font-bold text-emerald-700">-</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-500 block">ระดับผลการประเมิน</span>
+            <span id="detailPercentBadge"
+              class="inline-block px-2 py-0.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">-</span>
+          </div>
+        </div>
+
+        <!-- Checklist Breakdown Table -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">คะแนนประเมินรายข้อ</h4>
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">รายการเกณฑ์การตรวจ</th>
+                  <th class="py-2.5 px-3 text-center w-24">คะแนนที่ได้</th>
+                  <th class="py-2.5 px-3 text-center w-20">คะแนนเต็ม</th>
+                </tr>
+              </thead>
+              <tbody id="detailChecklistTbody" class="divide-y divide-slate-100 bg-white">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Comment Box -->
+        <div id="detailCommentBox" class="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl">
+          <h4 class="text-xs font-bold text-amber-900 flex items-center space-x-1.5 mb-1">
+            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            <span>ข้อเสนอแนะเพิ่มเติม:</span>
+          </h4>
+          <p id="detailCommentText" class="text-xs sm:text-sm text-amber-950">-</p>
+        </div>
+
+        <!-- Photo Gallery (Fancybox 5 Enabled) -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+            <span>รูปภาพประกอบการตรวจ</span>
+            <span id="detailPhotoCountBadge"
+              class="text-[11px] font-normal text-slate-400">คลิกที่รูปเพื่อซูมและขยายใหญ่</span>
+          </h4>
+          <div id="detailGalleryGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+            <!-- Dynamic Images -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="border-t border-slate-100 pt-3 text-right">
+        <button type="button" onclick="closeInspectionDetailModal()"
+          class="px-5 py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- 5. FOOTER -->
+  <!-- ================================================================= -->
+  <footer class="bg-white border-t border-slate-200 mt-auto">
+    <div
+      class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 space-y-2 sm:space-y-0">
+      <div class="flex items-center space-x-2">
+        <span class="font-medium text-emerald-800">โรงเรียนประชาสงเคราะห์วิทยา</span>
+        <span>•</span>
+        <span>ระบบตรวจสอบความสะอาด v3.0 (SPA + Sheets API v4)</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span id="connectionStatusBadge"
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-800">
+          <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-600 rounded-full animate-pulse"></span>
+          เชื่อมต่อระบบแล้ว
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================================================================= -->
+  <!-- 6. AUTH PIN LOGIN MODAL -->
+  <!-- ================================================================= -->
+  <div id="pinLoginModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white rounded-2xl max-w-sm w-full p-6 sm:p-8 shadow-2xl border border-slate-100 transform transition-all scale-95 duration-300"
+      id="pinModalCard">
+
+      <div class="text-center space-y-2">
+        <div
+          class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 mb-2 border border-emerald-100 shadow-inner">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800">เข้าสู่ระบบด้วย PIN</h3>
+        <p class="text-xs text-slate-500">กรุณาระบุรหัส PIN 6 หลักเพื่อเริ่มการตรวจและบันทึกคะแนน</p>
+      </div>
+
+      <!-- PIN Input & Visual Dots -->
+      <div class="mt-6 space-y-4">
+        <div class="relative">
+          <input type="password" id="pinInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+            placeholder="••••••"
+            class="w-full text-center text-3xl tracking-[0.8em] font-mono py-3 px-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 transition"
+            oninput="handlePinInput(this.value)"
+            onkeypress="if(event.key==='Enter' && this.value.length===6) submitPinLogin();" />
+        </div>
+
+        <!-- Numeric Keypad Helper for Mobile / Quick Access -->
+        <div class="grid grid-cols-3 gap-2 pt-2">
+          <button type="button" onclick="appendPin('1')" class="pin-key-btn">1</button>
+          <button type="button" onclick="appendPin('2')" class="pin-key-btn">2</button>
+          <button type="button" onclick="appendPin('3')" class="pin-key-btn">3</button>
+          <button type="button" onclick="appendPin('4')" class="pin-key-btn">4</button>
+          <button type="button" onclick="appendPin('5')" class="pin-key-btn">5</button>
+          <button type="button" onclick="appendPin('6')" class="pin-key-btn">6</button>
+          <button type="button" onclick="appendPin('7')" class="pin-key-btn">7</button>
+          <button type="button" onclick="appendPin('8')" class="pin-key-btn">8</button>
+          <button type="button" onclick="appendPin('9')" class="pin-key-btn">9</button>
+          <button type="button" onclick="clearPin()" class="pin-key-btn text-xs text-red-500 font-bold">ล้าง</button>
+          <button type="button" onclick="appendPin('0')" class="pin-key-btn">0</button>
+          <button type="button" onclick="backspacePin()" class="pin-key-btn text-slate-600">
+            <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Submit and Cancel Buttons -->
+        <div class="pt-2 space-y-2">
+          <button type="button" id="pinSubmitBtn" disabled onclick="submitPinLogin()"
+            class="w-full py-3 px-4 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-md transition transform active:scale-98">
+            เข้าสู่ระบบ
+          </button>
+          <button type="button" onclick="closeLoginModal()"
+            class="w-full py-2.5 px-4 rounded-xl font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition">
+            ยกเลิก
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Keypad Button Styling -->
+  <style>
+    .pin-key-btn {
+      padding-top: 0.65rem;
+      padding-bottom: 0.65rem;
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #334155;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .pin-key-btn:active {
+      transform: scale(0.95);
+      background-color: #e2e8f0;
+    }
+
+    .active-tab {
+      background-color: rgba(6, 95, 70, 0.9) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+
+  <!-- ================================================================= -->
+  <!-- 7. CLIENT-SIDE CORE JAVASCRIPT & STATE MANAGEMENT -->
+  <!-- ================================================================= -->
+  <script>
+    /**
+     * URL Web App ของ Google Apps Script ที่ได้จากการ Deploy
+     */
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzdMZKAXvATAGJ32ZP0A6Fq0eytMSBziqT94A1AiqZlPPOP8jZC22dnsquLYdBCTug3VA/exec';
+
+    // Application State Store
+    const AppState = {
+      currentUser: null,
+      settings: {},
+      users: [],
+      classrooms: [],
+      areas: [],
+      checklists: [],
+      todaySummary: [],
+      activeTab: 'todaySummary',
+      isLoading: false,
+      roomForm: {
+        targetId: '',
+        targetName: '',
+        scores: {},
+        images: [],
+        comment: ''
+      },
+      areaForm: {
+        targetId: '',
+        targetName: '',
+        scores: {},
+        images: [],
+        comment: ''
+      }
+    };
+
+    // ==========================================
+    // SweetAlert2 Global Helper Functions
+    // ==========================================
+    const swalCustom = () => Swal.mixin({
+      customClass: {
+        confirmButton: 'px-5 py-2.5 rounded-xl font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-200 mx-1.5 shadow-sm transition',
+        cancelButton: 'px-5 py-2.5 rounded-xl font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 focus:ring-4 focus:ring-slate-200 mx-1.5 transition'
+      },
+      buttonsStyling: false
+    });
+
+    function swalShowLoading(title = 'กำลังประมวลผล...') {
+      swalCustom().fire({
+        title: title,
+        text: 'กรุณารอสักครู่ ระบบกำลังสื่อสารกับเซิร์ฟเวอร์',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    }
+
+    function swalShowSuccess(title, html = '', timer = 1500) {
+      return swalCustom().fire({
+        icon: 'success',
+        title: title,
+        html: html,
+        timer: timer > 0 ? timer : undefined,
+        showConfirmButton: timer === 0,
+        confirmButtonText: 'ตกลง',
+        timerProgressBar: timer > 0
+      });
+    }
+
+    function swalShowError(title, text = '') {
+      return swalCustom().fire({
+        icon: 'error',
+        title: title,
+        text: text,
+        confirmButtonText: 'ตกลง'
+      });
+    }
+
+    function swalShowWarning(title, text = '') {
+      return swalCustom().fire({
+        icon: 'warning',
+        title: title,
+        text: text,
+        confirmButtonText: 'รับทราบ'
+      });
+    }
+
+    // ==========================================
+    // Real-Time Thai Clock & Date Engine
+    // ==========================================
+    function startLiveClock() {
+      const thaiMonths = [
+        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+      ];
+
+      function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const day = now.getDate();
+        const month = thaiMonths[now.getMonth()];
+        const year = now.getFullYear() + 543;
+
+        const timeEl = document.getElementById('liveClockTime');
+        const dateEl = document.getElementById('liveClockDate');
+
+        if (timeEl) timeEl.textContent = `${hours}:${minutes}:${seconds} น.`;
+        if (dateEl) dateEl.textContent = `${day} ${month} ${year}`;
+
+        // Update form live labels
+        const rDate = document.getElementById('roomInspectionDate');
+        const aDate = document.getElementById('areaInspectionDate');
+        if (rDate) rDate.textContent = `${day} ${month} ${year} ${hours}:${minutes} น.`;
+        if (aDate) aDate.textContent = `${day} ${month} ${year} ${hours}:${minutes} น.`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    // ==========================================
+    // System Initialization & API Calls
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        startLiveClock();
+        checkSavedSession();
+        await loadInitialData();
+
+        // Initialize Fancybox 5
+        if (typeof Fancybox !== 'undefined') {
+          Fancybox.bind('[data-fancybox]', {
+            Toolbar: {
+              display: {
+                left: ["infobar"],
+                middle: [
+                  "zoomIn",
+                  "zoomOut",
+                  "toggle1to1",
+                  "rotateCCW",
+                  "rotateCW",
+                  "flipX",
+                  "flipY",
+                ],
+                right: ["slideshow", "download", "thumbs", "close"],
+              },
+            },
+          });
+        }
+      } catch (err) {
+        console.error('Initialization Error:', err);
+        swalShowError('เกิดข้อผิดพลาดในการเริ่มต้นระบบ', err.message);
+      }
+    });
+
+    async function loadInitialData() {
+      try {
+        const fallbackSettings = {
+          school_name: 'โรงเรียนประชาสงเคราะห์วิทยา',
+          school_logo: 'https://lh3.googleusercontent.com/pw/AP1GczNLx3RZP5eNhiYlYMV3vwy5-ukdanDiH3PHMeqMW2mhInkLQvJ38MefB4Agug-U-Xrk2Syj4BGcNcOWOS0DJZsEhBx6wXcWBOhOKzKGDXFQIWAExilHrEluIs9r4kgXwyySrWcTWBfpm5jIM939f_va=w497-h496-s-no-gm?authuser=0',
+          system_announcement: '',
+          enable_room_check: 'TRUE',
+          enable_area_check: 'TRUE',
+          academic_term: '1/2569'
+        };
+
+        const fallbackClassrooms = [
+          { classroom: 'ม.1/1', area_id: 'AREA001', advisors: ['ครูผกามาศ เสือคล้าย', 'ครูอุเทน หมื่นสุวรรณ์'] },
+          { classroom: 'ม.1/2', area_id: 'AREA001', advisors: ['ครูสมควร รักเรียน', 'ครูวิภาดา ใจเพียร'] },
+          { classroom: 'ม.2/1', area_id: 'AREA001', advisors: ['ครูอนุชา เก่งกล้า', 'ครูสุดา ประเสริฐ'] },
+          { classroom: 'ม.2/2', area_id: 'AREA001', advisors: ['ครูธนากร กิตติคุณ', 'ครูนฤมล สายทอง'] },
+          { classroom: 'ม.3/1', area_id: 'AREA001', advisors: ['ครูพิเชษฐ์ ปรีชา', 'ครูอรทัย ทองใบ'] },
+          { classroom: 'ม.3/2', area_id: 'AREA001', advisors: ['ครูชัยวัฒน์ ดวงดี', 'ครูรัตนา สุขสม'] }
+        ];
+
+        const fallbackAreas = [
+          { area_id: 'AREA001', area_name: 'หน้าเสาธง', area_description: 'บริเวณหน้าเสาธงทั้งหมดและทางเดินด้านหน้า', is_active: 'TRUE' },
+          { area_id: 'AREA002', area_name: 'โรงอาหาร', area_description: 'บริเวณที่รับประทานอาหารและจุดล้างจาน', is_active: 'TRUE' },
+          { area_id: 'AREA003', area_name: 'หอประชุม', area_description: 'ภายในหอประชุมและลานอเนกประสงค์', is_active: 'TRUE' },
+          { area_id: 'AREA004', area_name: 'สนามฟุตบอล', area_description: 'บริเวณสนามฟุตบอลและอัฒจันทร์', is_active: 'TRUE' }
+        ];
+
+        const fallbackChecklists = [
+          { checklist_id: 'room001', checklist_name: 'พื้นห้อง', checklist_detail: 'ต้องสะอาดไม่มีขยะ ฝุ่น และเศษกระดาษ', max_score: 3, is_active: 'TRUE' },
+          { checklist_id: 'room002', checklist_name: 'โต๊ะ-เก้าอี้', checklist_detail: 'จัดเป็นระเบียบเรียบร้อย ไม่มีขยะใต้โต๊ะ', max_score: 3, is_active: 'TRUE' },
+          { checklist_id: 'room003', checklist_name: 'กระดานและหน้าห้อง', checklist_detail: 'ลบกระดานสะอาด อุปกรณ์หน้าห้องวางเป็นระเบียบ', max_score: 2, is_active: 'TRUE' },
+          { checklist_id: 'room004', checklist_name: 'ถังขยะและมุมทำความสะอาด', checklist_detail: 'เทขยะเรียบร้อย ไม้กวาดที่โกยผงจัดเก็บเข้าที่', max_score: 2, is_active: 'TRUE' },
+          { checklist_id: 'area001', checklist_name: 'ความสะอาดทั่วไป', checklist_detail: 'ไม่มีใบไม้ตกค้าง ถังขยะเทเรียบร้อย', max_score: 5, is_active: 'TRUE' },
+          { checklist_id: 'area002', checklist_name: 'ความเป็นระเบียบเรียบร้อย', checklist_detail: 'สิ่งของจัดวางเป็นระเบียบ ไม่มีสิ่งกีดขวางทางเดิน', max_score: 5, is_active: 'TRUE' }
+        ];
+
+        const fallbackUsers = [
+          { user_id: 'USR001', full_name: 'นางสาวกัญญารัตน์ แสงนรินทร์', role: 'teacher', allowed_rooms: 'all', allowed_areas: 'all', is_active: true },
+          { user_id: 'USR002', full_name: 'นายสมชาย ใจดี', role: 'Inspector', allowed_rooms: ['ม.1/1', 'ม.1/2'], allowed_areas: ['AREA001'], is_active: true }
+        ];
+
+        // Try API Fetch
+        if (GAS_API_URL && !GAS_API_URL.includes('placeholder')) {
+          try {
+            const response = await fetch(GAS_API_URL + '?action=getInitialData');
+            const result = await response.json();
+            if (result.status === 'success' && result.data) {
+              AppState.settings = result.data.settings || fallbackSettings;
+              AppState.classrooms = result.data.classrooms || fallbackClassrooms;
+              AppState.areas = result.data.areas || fallbackAreas;
+              AppState.checklists = result.data.checklists || fallbackChecklists;
+              AppState.todaySummary = result.data.todaySummary || [];
+              AppState.users = result.data.users || fallbackUsers;
+            }
+          } catch (fetchErr) {
+            console.warn('Backend fetch fallback mode:', fetchErr);
+            AppState.settings = fallbackSettings;
+            AppState.classrooms = fallbackClassrooms;
+            AppState.areas = fallbackAreas;
+            AppState.checklists = fallbackChecklists;
+            AppState.users = fallbackUsers;
+          }
+        } else {
+          AppState.settings = fallbackSettings;
+          AppState.classrooms = fallbackClassrooms;
+          AppState.areas = fallbackAreas;
+          AppState.checklists = fallbackChecklists;
+          AppState.users = fallbackUsers;
+        }
+
+        applySettingsToUI();
+        initInspectionForms();
+        renderTodaySummary();
+        renderStatsTab();
+        renderSystemSettingsTab();
+        renderUserSettingsTab();
+      } catch (error) {
+        console.error('Error in loadInitialData:', error);
+      }
+    }
+
+    function applySettingsToUI() {
+      try {
+        if (AppState.settings.school_name) {
+          const el = document.getElementById('schoolName');
+          if (el) el.textContent = AppState.settings.school_name;
+        }
+
+        if (AppState.settings.school_logo) {
+          const logoEl = document.getElementById('schoolLogo');
+          if (logoEl) logoEl.src = AppState.settings.school_logo;
+        }
+
+        if (AppState.settings.academic_term) {
+          const termEl = document.getElementById('termBadge');
+          if (termEl) termEl.textContent = `ภาคเรียน ${AppState.settings.academic_term}`;
+        }
+
+        // Announcement Banner
+        const announcement = AppState.settings.system_announcement;
+        const banner = document.getElementById('announcementBanner');
+        const bannerText = document.getElementById('announcementText');
+        if (announcement && announcement.trim() !== '') {
+          bannerText.textContent = announcement;
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
+      } catch (err) {
+        console.error('Error applying settings:', err);
+      }
+    }
+
+    function hideAnnouncement() {
+      const banner = document.getElementById('announcementBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    // ==========================================
+    // PIN Authentication Logic
+    // ==========================================
+    function openLoginModal() {
+      const modal = document.getElementById('pinLoginModal');
+      const card = document.getElementById('pinModalCard');
+      const input = document.getElementById('pinInput');
+
+      input.value = '';
+      document.getElementById('pinSubmitBtn').disabled = true;
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        card.classList.remove('scale-95');
+        input.focus();
+      }, 10);
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById('pinLoginModal');
+      const card = document.getElementById('pinModalCard');
+      modal.classList.add('opacity-0');
+      card.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    function handlePinInput(val) {
+      const cleanVal = val.replace(/[^0-9]/g, '').slice(0, 6);
+      const input = document.getElementById('pinInput');
+      input.value = cleanVal;
+      document.getElementById('pinSubmitBtn').disabled = cleanVal.length !== 6;
+    }
+
+    function appendPin(digit) {
+      const input = document.getElementById('pinInput');
+      if (input.value.length < 6) {
+        input.value += digit;
+        handlePinInput(input.value);
+      }
+    }
+
+    function clearPin() {
+      const input = document.getElementById('pinInput');
+      input.value = '';
+      handlePinInput('');
+    }
+
+    function backspacePin() {
+      const input = document.getElementById('pinInput');
+      input.value = input.value.slice(0, -1);
+      handlePinInput(input.value);
+    }
+
+    async function submitPinLogin() {
+      const input = document.getElementById('pinInput');
+      const pin = input.value.trim();
+      if (pin.length !== 6) return;
+
+      const submitBtn = document.getElementById('pinSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'กำลังตรวจสอบข้อมูล…';
+
+      try {
+        let userResult = null;
+
+        if (GAS_API_URL && !GAS_API_URL.includes('placeholder')) {
+          const response = await fetch(GAS_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'verifyPin', pin: pin })
+          });
+          const res = await response.json();
+          if (res.status === 'success' && res.user) {
+            userResult = res.user;
+          } else {
+            throw new Error(res.message || 'รหัส PIN ไม่ถูกต้อง');
+          }
+        } else {
+          if (pin === '123456') {
+            userResult = {
+              user_id: 'USR001',
+              full_name: 'นางสาวกัญญารัตน์ แสงนรินทร์',
+              role: 'teacher',
+              allowed_rooms: 'all',
+              allowed_areas: 'all'
+            };
+          } else if (pin === '654321') {
+            userResult = {
+              user_id: 'USR002',
+              full_name: 'นายสมชาย ใจดี',
+              role: 'Inspector',
+              allowed_rooms: ['ม.1/1', 'ม.1/2'],
+              allowed_areas: ['AREA001']
+            };
+          } else {
+            throw new Error('รหัส PIN ไม่ถูกต้อง หรือบัญชีถูกระงับ');
+          }
+        }
+
+        AppState.currentUser = userResult;
+        sessionStorage.setItem('pcsk_user_session', JSON.stringify(userResult));
+        closeLoginModal();
+        updateAuthUI();
+        initInspectionForms();
+
+        await swalShowSuccess('เข้าสู่ระบบสำเร็จ', `ยินดีต้อนรับ <b>${userResult.full_name}</b>`, 2000);
+      } catch (err) {
+        console.error('Login error:', err);
+        swalShowError('เข้าสู่ระบบไม่สำเร็จ', err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'เข้าสู่ระบบ';
+      }
+    }
+
+    function checkSavedSession() {
+      try {
+        const saved = sessionStorage.getItem('pcsk_user_session');
+        if (saved) {
+          AppState.currentUser = JSON.parse(saved);
+          updateAuthUI();
+        }
+      } catch (e) {
+        console.warn('Session parse error:', e);
+      }
+    }
+
+    function handleLogout() {
+      swalCustom().fire({
+        title: 'ยืนยันการออกจากระบบ?',
+        text: 'คุณต้องการออกจากระบบหรือไม่',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ออกจากระบบ',
+        cancelButtonText: 'ยกเลิก'
+      }).then(res => {
+        if (res.isConfirmed) {
+          AppState.currentUser = null;
+          sessionStorage.removeItem('pcsk_user_session');
+          updateAuthUI();
+          switchTab('todaySummary');
+          swalShowSuccess('ออกจากระบบแล้ว', '', 1200);
+        }
+      });
+    }
+
+    function updateAuthUI() {
+      const loginBtn = document.getElementById('loginBtn');
+      const userBadge = document.getElementById('userProfileBadge');
+      const userName = document.getElementById('userNameText');
+      const userRole = document.getElementById('userRoleBadge');
+      const avatarChar = document.getElementById('userAvatarChar');
+      const authTabs = document.querySelectorAll('.auth-required');
+      const adminTabs = document.querySelectorAll('.admin-tab');
+
+      if (AppState.currentUser) {
+        loginBtn.classList.add('hidden');
+        userBadge.classList.remove('hidden');
+        userName.textContent = AppState.currentUser.full_name;
+
+        const roleText = AppState.currentUser.role === 'teacher' ? 'ครูผู้สอน / ผู้ดูแล' : 'ผู้ตรวจความสะอาด';
+        userRole.textContent = roleText;
+        avatarChar.textContent = (AppState.currentUser.full_name || 'U').charAt(0);
+
+        const rInsp = document.getElementById('roomInspectorName');
+        const aInsp = document.getElementById('areaInspectorName');
+        if (rInsp) rInsp.textContent = AppState.currentUser.full_name;
+        if (aInsp) aInsp.textContent = AppState.currentUser.full_name;
+
+        authTabs.forEach(t => t.classList.remove('hidden'));
+
+        if (AppState.currentUser.role === 'teacher') {
+          adminTabs.forEach(t => t.classList.remove('hidden'));
+        } else {
+          adminTabs.forEach(t => t.classList.add('hidden'));
+        }
+      } else {
+        loginBtn.classList.remove('hidden');
+        userBadge.classList.add('hidden');
+        authTabs.forEach(t => t.classList.add('hidden'));
+        adminTabs.forEach(t => t.classList.add('hidden'));
+      }
+    }
+
+    // ==========================================
+    // Navigation Tabs Engine
+    // ==========================================
+    function switchTab(tabId) {
+      try {
+        AppState.activeTab = tabId;
+
+        document.querySelectorAll('.tab-content').forEach(el => {
+          el.classList.add('hidden');
+        });
+
+        document.querySelectorAll('.nav-tab').forEach(btn => {
+          btn.classList.remove('active-tab');
+          btn.classList.add('text-emerald-200');
+        });
+
+        const targetSection = document.getElementById(`section-${tabId}`);
+        const targetBtn = document.getElementById(`tab-${tabId}`);
+
+        if (targetSection) targetSection.classList.remove('hidden');
+        if (targetBtn) {
+          targetBtn.classList.add('active-tab');
+          targetBtn.classList.remove('text-emerald-200');
+        }
+
+        if (tabId === 'todaySummary') renderTodaySummary();
+        if (tabId === 'stats') renderStatsTab();
+        if (tabId === 'systemSettings') renderSystemSettingsTab();
+        if (tabId === 'userSettings') renderUserSettingsTab();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        console.error('Error switching tab:', err);
+      }
+    }
+
+    // =================================================================
+    // 8. INSPECTION WORKFLOW & FORM ENGINE
+    // =================================================================
+
+    function initInspectionForms() {
+      try {
+        renderTargetDropdowns();
+        renderChecklists('room');
+        renderChecklists('area');
+      } catch (e) {
+        console.error('Error initializing inspection forms:', e);
+      }
+    }
+
+    function renderTargetDropdowns() {
+      const roomSelect = document.getElementById('roomSelectTarget');
+      if (roomSelect) {
+        roomSelect.innerHTML = '<option value="">-- กรุณาเลือกห้องเรียน --</option>';
+
+        let allowedRooms = 'all';
+        if (AppState.currentUser && AppState.currentUser.allowed_rooms) {
+          allowedRooms = AppState.currentUser.allowed_rooms;
+        }
+
+        AppState.classrooms.forEach(c => {
+          const isAllowed = allowedRooms === 'all' || (Array.isArray(allowedRooms) && allowedRooms.includes(c.classroom));
+          if (isAllowed) {
+            const opt = document.createElement('option');
+            opt.value = c.classroom;
+            opt.textContent = `ห้อง ${c.classroom}`;
+            roomSelect.appendChild(opt);
+          }
+        });
+      }
+
+      const areaSelect = document.getElementById('areaSelectTarget');
+      if (areaSelect) {
+        areaSelect.innerHTML = '<option value="">-- กรุณาเลือกเขตพื้นที่ --</option>';
+
+        let allowedAreas = 'all';
+        if (AppState.currentUser && AppState.currentUser.allowed_areas) {
+          allowedAreas = AppState.currentUser.allowed_areas;
+        }
+
+        AppState.areas.forEach(a => {
+          const isAllowed = allowedAreas === 'all' || (Array.isArray(allowedAreas) && (allowedAreas.includes(a.area_id) || allowedAreas.includes(a.area_name)));
+          if (isAllowed) {
+            const opt = document.createElement('option');
+            opt.value = a.area_id;
+            opt.textContent = `${a.area_name} (${a.area_id})`;
+            areaSelect.appendChild(opt);
+          }
+        });
+      }
+    }
+
+    function handleTargetChange(type) {
+      if (type === 'room') {
+        const select = document.getElementById('roomSelectTarget');
+        const targetVal = select.value;
+        const infoBox = document.getElementById('roomAdvisorInfo');
+        const advisorText = document.getElementById('roomAdvisorNamesText');
+        const areaLinkText = document.getElementById('roomAreaLinkText');
+
+        if (targetVal) {
+          const item = AppState.classrooms.find(c => c.classroom === targetVal);
+          if (item) {
+            AppState.roomForm.targetId = item.classroom;
+            AppState.roomForm.targetName = `ห้อง ${item.classroom}`;
+
+            let advisors = item.advisors;
+            if (Array.isArray(advisors)) {
+              advisorText.textContent = advisors.join(', ');
+            } else {
+              advisorText.textContent = String(advisors || '-');
+            }
+
+            areaLinkText.textContent = `เขตพื้นที่: ${item.area_id || 'ไม่ระบุ'}`;
+            infoBox.classList.remove('hidden');
+          }
+        } else {
+          AppState.roomForm.targetId = '';
+          AppState.roomForm.targetName = '';
+          infoBox.classList.add('hidden');
+        }
+      } else if (type === 'area') {
+        const select = document.getElementById('areaSelectTarget');
+        const targetVal = select.value;
+        const infoBox = document.getElementById('areaDescriptionInfo');
+        const descText = document.getElementById('areaDescriptionText');
+
+        if (targetVal) {
+          const item = AppState.areas.find(a => a.area_id === targetVal);
+          if (item) {
+            AppState.areaForm.targetId = item.area_id;
+            AppState.areaForm.targetName = item.area_name;
+            descText.textContent = item.area_description || 'ไม่มีรายละเอียดเพิ่มเติม';
+            infoBox.classList.remove('hidden');
+          }
+        } else {
+          AppState.areaForm.targetId = '';
+          AppState.areaForm.targetName = '';
+          infoBox.classList.add('hidden');
+        }
+      }
+    }
+
+    function renderChecklists(type) {
+      const containerId = type === 'room' ? 'roomChecklistContainer' : 'areaChecklistContainer';
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = '';
+      const prefix = type === 'room' ? 'room' : 'area';
+      const filtered = AppState.checklists.filter(c =>
+        c.checklist_id.toLowerCase().startsWith(prefix) && String(c.is_active).toUpperCase() === 'TRUE'
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-sm text-slate-400 py-4 text-center">ไม่มีรายการเกณฑ์การตรวจในขณะนี้</p>';
+        return;
+      }
+
+      filtered.forEach((item, index) => {
+        const maxScore = parseInt(item.max_score, 10) || 5;
+        if (type === 'room') {
+          AppState.roomForm.scores[item.checklist_id] = maxScore;
+        } else {
+          AppState.areaForm.scores[item.checklist_id] = maxScore;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition space-y-3';
+
+        let scoreButtonsHtml = '';
+        for (let s = 0; s <= maxScore; s++) {
+          const activeClass = s === maxScore ? (type === 'room' ? 'score-btn-active' : 'score-btn-area-active') : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-300';
+          scoreButtonsHtml += `
+            <button type="button" 
+                    id="btn-${type}-${item.checklist_id}-${s}" 
+                    onclick="setScore('${type}', '${item.checklist_id}', ${s}, ${maxScore})" 
+                    class="score-choice-btn flex-1 py-2 rounded-lg border text-sm font-semibold transition ${activeClass}">
+              ${s}
+            </button>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="space-y-0.5">
+              <div class="flex items-center space-x-2">
+                <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center">${index + 1}</span>
+                <h4 class="font-bold text-slate-800 text-sm sm:text-base">${item.checklist_name}</h4>
+              </div>
+              <p class="text-xs text-slate-500 pl-8">${item.checklist_detail || '-'}</p>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-md font-semibold ${type === 'room' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+              เต็ม ${maxScore} คะแนน
+            </span>
+          </div>
+
+          <div class="pt-1">
+            <div class="grid grid-flow-col auto-cols-fr gap-1.5 sm:gap-2">
+              ${scoreButtonsHtml}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      updateScoreCalculation(type);
+    }
+
+    function setScore(type, checklistId, score, maxScore) {
+      if (type === 'room') {
+        AppState.roomForm.scores[checklistId] = score;
+      } else {
+        AppState.areaForm.scores[checklistId] = score;
+      }
+
+      for (let s = 0; s <= maxScore; s++) {
+        const btn = document.getElementById(`btn-${type}-${checklistId}-${s}`);
+        if (btn) {
+          btn.className = 'score-choice-btn flex-1 py-2 rounded-lg border text-sm font-semibold transition ' +
+            (s === score ? (type === 'room' ? 'score-btn-active' : 'score-btn-area-active') : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-300');
+        }
+      }
+
+      updateScoreCalculation(type);
+    }
+
+    function updateScoreCalculation(type) {
+      const scores = type === 'room' ? AppState.roomForm.scores : AppState.areaForm.scores;
+      const prefix = type === 'room' ? 'room' : 'area';
+      const checklists = AppState.checklists.filter(c =>
+        c.checklist_id.toLowerCase().startsWith(prefix) && String(c.is_active).toUpperCase() === 'TRUE'
+      );
+
+      let totalScore = 0;
+      let maxTotalScore = 0;
+
+      checklists.forEach(c => {
+        const max = parseInt(c.max_score, 10) || 0;
+        const score = scores[c.checklist_id] !== undefined ? scores[c.checklist_id] : max;
+        totalScore += score;
+        maxTotalScore += max;
+      });
+
+      const percentage = maxTotalScore > 0 ? Math.round((totalScore / maxTotalScore) * 100) : 0;
+
+      const previewEl = document.getElementById(`${type}ScorePreview`);
+      const badgeEl = document.getElementById(`${type}PercentBadge`);
+
+      if (previewEl) previewEl.textContent = `${totalScore} / ${maxTotalScore}`;
+      if (badgeEl) {
+        badgeEl.textContent = `${percentage}%`;
+        badgeEl.className = `ml-1.5 px-2.5 py-0.5 text-xs font-bold rounded-full transition ${getScoreBadgeStyle(percentage)}`;
+      }
+    }
+
+    function getScoreBadgeStyle(percentage) {
+      if (percentage >= 80) return 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+      if (percentage >= 65) return 'bg-blue-100 text-blue-800 border border-blue-300';
+      if (percentage >= 50) return 'bg-amber-100 text-amber-800 border border-amber-300';
+      return 'bg-red-100 text-red-800 border border-red-300';
+    }
+
+    // =================================================================
+    // 9. CLIENT-SIDE IMAGE RESIZER & CANVAS COMPRESSOR
+    // =================================================================
+
+    async function compressImage(file, maxDimension = 1024, quality = 0.78) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxDimension) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              }
+            } else {
+              if (height > maxDimension) {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+            resolve({
+              base64: compressedBase64,
+              filename: file.name.replace(/\.[^/.]+$/, "") + '.jpg',
+              mimeType: 'image/jpeg',
+              width: width,
+              height: height
+            });
+          };
+          img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+      });
+    }
+
+    async function handleImageUpload(event, type) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const currentImages = type === 'room' ? AppState.roomForm.images : AppState.areaForm.images;
+      const remainingSlots = 5 - currentImages.length;
+
+      if (remainingSlots <= 0) {
+        swalShowWarning('รูปภาพครบจำนวนแล้ว', 'คุณสามารถแนบรูปภาพได้สูงสุด 5 รูปต่อการตรวจ 1 ครั้ง');
+        event.target.value = '';
+        return;
+      }
+
+      const filesToProcess = Array.from(files).slice(0, remainingSlots);
+      swalShowLoading(`กำลังปรับขนาดและบีบอัด ${filesToProcess.length} รูปภาพ...`);
+
+      try {
+        for (const file of filesToProcess) {
+          const compressed = await compressImage(file, 1024, 0.78);
+          currentImages.push(compressed);
+        }
+
+        Swal.close();
+        renderImageThumbnails(type);
+      } catch (err) {
+        console.error('Image compression error:', err);
+        swalShowError('การประมวลผลรูปภาพล้มเหลว', err.message);
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    function removeImage(index, type) {
+      const currentImages = type === 'room' ? AppState.roomForm.images : AppState.areaForm.images;
+      if (index >= 0 && index < currentImages.length) {
+        currentImages.splice(index, 1);
+        renderImageThumbnails(type);
+      }
+    }
+
+    function renderImageThumbnails(type) {
+      const images = type === 'room' ? AppState.roomForm.images : AppState.areaForm.images;
+      const gallery = document.getElementById(`${type}PhotoGallery`);
+      const countEl = document.getElementById(`${type}PhotoCount`);
+      const uploadBox = document.getElementById(`${type}UploadBox`);
+
+      if (!gallery) return;
+      if (countEl) countEl.textContent = `${images.length}/5 รูป`;
+
+      gallery.querySelectorAll('.thumb-card').forEach(el => el.remove());
+
+      images.forEach((imgObj, idx) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb-card relative h-28 rounded-xl overflow-hidden border border-slate-200 shadow-sm group bg-slate-100';
+        thumb.innerHTML = `
+          <img src="${imgObj.base64}" alt="รูปที่ ${idx + 1}" class="w-full h-full object-cover" />
+          <button type="button" 
+                  onclick="removeImage(${idx}, '${type}')" 
+                  class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-90 hover:opacity-100 hover:scale-110 shadow transition" 
+                  title="ลบรูปนี้">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <span class="absolute bottom-1 left-1.5 px-1.5 py-0.5 rounded bg-black/60 text-white text-[10px] font-mono">
+            ${idx + 1}
+          </span>
+        `;
+        gallery.insertBefore(thumb, uploadBox);
+      });
+
+      if (images.length >= 5) {
+        uploadBox.classList.add('hidden');
+      } else {
+        uploadBox.classList.remove('hidden');
+      }
+    }
+
+    function resetInspectionForm(type) {
+      if (type === 'room') {
+        AppState.roomForm.targetId = '';
+        AppState.roomForm.targetName = '';
+        AppState.roomForm.images = [];
+        AppState.roomForm.comment = '';
+        document.getElementById('roomSelectTarget').value = '';
+        document.getElementById('roomCommentInput').value = '';
+        document.getElementById('roomAdvisorInfo').classList.add('hidden');
+        renderChecklists('room');
+        renderImageThumbnails('room');
+      } else {
+        AppState.areaForm.targetId = '';
+        AppState.areaForm.targetName = '';
+        AppState.areaForm.images = [];
+        AppState.areaForm.comment = '';
+        document.getElementById('areaSelectTarget').value = '';
+        document.getElementById('areaCommentInput').value = '';
+        document.getElementById('areaDescriptionInfo').classList.add('hidden');
+        renderChecklists('area');
+        renderImageThumbnails('area');
+      }
+    }
+
+    // ==========================================
+    // Save & Submission Handler
+    // ==========================================
+    async function confirmAndSaveInspection(type) {
+      try {
+        if (!AppState.currentUser) {
+          openLoginModal();
+          return;
+        }
+
+        const formData = type === 'room' ? AppState.roomForm : AppState.areaForm;
+        const targetSelect = document.getElementById(`${type}SelectTarget`);
+        const commentInput = document.getElementById(`${type}CommentInput`);
+
+        formData.targetId = targetSelect.value;
+        formData.comment = commentInput ? commentInput.value.trim() : '';
+
+        if (!formData.targetId) {
+          swalShowWarning('กรุณาระบุเป้าหมายการตรวจ', type === 'room' ? 'กรุณาเลือกห้องเรียนที่ต้องการบันทึก' : 'กรุณาเลือกเขตพื้นที่ที่ต้องการบันทึก');
+          targetSelect.focus();
+          return;
+        }
+
+        const prefix = type === 'room' ? 'room' : 'area';
+        const checklists = AppState.checklists.filter(c =>
+          c.checklist_id.toLowerCase().startsWith(prefix) && String(c.is_active).toUpperCase() === 'TRUE'
+        );
+
+        let totalScore = 0;
+        let maxScore = 0;
+        const scoreDetails = [];
+
+        checklists.forEach(c => {
+          const max = parseInt(c.max_score, 10) || 0;
+          const sc = formData.scores[c.checklist_id] !== undefined ? formData.scores[c.checklist_id] : max;
+          totalScore += sc;
+          maxScore += max;
+          scoreDetails.push({
+            checklist_id: c.checklist_id,
+            checklist_name: c.checklist_name,
+            score: sc,
+            max_score: max
+          });
+        });
+
+        const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+        const targetTitle = type === 'room' ? `ห้องเรียน: ${formData.targetId}` : `เขตพื้นที่: ${formData.targetName || formData.targetId}`;
+
+        const confirmResult = await swalCustom().fire({
+          title: 'ยืนยันการบันทึกผลการตรวจ?',
+          html: `
+            <div class="text-left text-sm space-y-2 p-2 bg-slate-50 rounded-xl border border-slate-200">
+              <div>🎯 <b>เป้าหมาย:</b> ${targetTitle}</div>
+              <div>👤 <b>ผู้ตรวจ:</b> ${AppState.currentUser.full_name}</div>
+              <div>📊 <b>คะแนนรวม:</b> <span class="text-base font-bold text-emerald-700">${totalScore} / ${maxScore} (${percentage}%)</span></div>
+              <div>📸 <b>รูปภาพแนบ:</b> ${formData.images.length} รูป</div>
+              ${formData.comment ? `<div>💬 <b>ข้อเสนอแนะ:</b> ${formData.comment}</div>` : ''}
+            </div>
+          `,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'ยืนยันและบันทึก',
+          cancelButtonText: 'ตรวจสอบอีกครั้ง'
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        swalShowLoading('กำลังบันทึกข้อมูลและอัปโหลดรูปภาพ...');
+
+        const payload = {
+          action: 'saveInspection',
+          type: type,
+          target_id: formData.targetId,
+          target_name: type === 'room' ? `ห้อง ${formData.targetId}` : formData.targetName,
+          inspector_name: AppState.currentUser.full_name,
+          scores: scoreDetails,
+          total_score: totalScore,
+          max_score: maxScore,
+          percentage: percentage,
+          comment: formData.comment,
+          term: AppState.settings.academic_term || '1/2569',
+          images: formData.images.map(img => img.base64)
+        };
+
+        if (GAS_API_URL && !GAS_API_URL.includes('placeholder')) {
+          const response = await fetch(GAS_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          const res = await response.json();
+          if (res.status !== 'success') {
+            throw new Error(res.message || 'บันทึกข้อมูลไม่สำเร็จ');
+          }
+        } else {
+          await new Promise(r => setTimeout(r, 800));
+          const mockRecord = {
+            record_id: 'REC-' + Date.now(),
+            timestamp: new Date().toISOString(),
+            date_str: new Date().toISOString().split('T')[0],
+            type: type,
+            target_id: formData.targetId,
+            target_name: payload.target_name,
+            inspector_name: payload.inspector_name,
+            scores: scoreDetails,
+            total_score: totalScore,
+            max_score: maxScore,
+            percentage: percentage,
+            comment: formData.comment,
+            image_urls: formData.images.map((img, i) => ({
+              id: 'mock-' + i,
+              name: img.filename,
+              url: img.base64
+            })),
+            term: payload.term
+          };
+
+          const existingIdx = AppState.todaySummary.findIndex(
+            l => l.date_str === mockRecord.date_str && l.type === mockRecord.type && l.target_id === mockRecord.target_id
+          );
+          if (existingIdx !== -1) {
+            AppState.todaySummary[existingIdx] = mockRecord;
+          } else {
+            AppState.todaySummary.push(mockRecord);
+          }
+        }
+
+        resetInspectionForm(type);
+        await swalShowSuccess('บันทึกผลสำเร็จ!', 'ข้อมูลการตรวจสอบถูกบันทึกเรียบร้อยแล้ว', 1500);
+
+        switchTab('todaySummary');
+        await loadInitialData();
+      } catch (err) {
+        console.error('Save inspection error:', err);
+        swalShowError('บันทึกผลไม่สำเร็จ', err.message);
+      }
+    }
+
+    // =================================================================
+    // 10. TODAY'S SUMMARY DASHBOARD & TABLE (PHASE 4)
+    // =================================================================
+
+    function renderTodaySummary() {
+      const container = document.getElementById('todaySummaryContainer');
+      if (!container) return;
+
+      const totalClassrooms = AppState.classrooms.length;
+      const totalAreas = AppState.areas.length;
+
+      // Group inspections by target
+      const roomLogs = AppState.todaySummary.filter(l => l.type === 'room');
+      const areaLogs = AppState.todaySummary.filter(l => l.type === 'area');
+
+      // Unique targets inspected today
+      const inspectedRooms = new Set(roomLogs.map(l => l.target_id));
+      const inspectedAreas = new Set(areaLogs.map(l => l.target_id));
+
+      const roomAvgPercent = roomLogs.length > 0
+        ? Math.round(roomLogs.reduce((sum, l) => sum + (Number(l.percentage) || 0), 0) / roomLogs.length)
+        : 0;
+
+      const areaAvgPercent = areaLogs.length > 0
+        ? Math.round(areaLogs.reduce((sum, l) => sum + (Number(l.percentage) || 0), 0) / areaLogs.length)
+        : 0;
+
+      container.innerHTML = `
+        <!-- Stats Overview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Card 1: ตรวจห้องเรียนแล้ว -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition">
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ตรวจห้องเรียนแล้ว</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-2xl sm:text-3xl font-extrabold text-emerald-800">${inspectedRooms.size}</span>
+                <span class="text-xs text-slate-400 font-medium">/ ${totalClassrooms} ห้อง</span>
+              </div>
+              <div class="w-28 bg-slate-100 rounded-full h-1.5 overflow-hidden mt-1">
+                <div class="bg-emerald-600 h-1.5 rounded-full" style="width: ${totalClassrooms > 0 ? (inspectedRooms.size / totalClassrooms) * 100 : 0}%"></div>
+              </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 2: คะแนนเฉลี่ยห้องเรียน -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition">
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">คะแนนเฉลี่ยห้องเรียน</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-2xl sm:text-3xl font-extrabold ${roomAvgPercent >= 80 ? 'text-emerald-700' : 'text-slate-800'}">${roomAvgPercent}%</span>
+                <span class="text-xs ${roomAvgPercent >= 80 ? 'text-emerald-600' : 'text-slate-400'} font-medium">ภาพรวม</span>
+              </div>
+              <span class="inline-block text-[11px] text-slate-400">จาก ${roomLogs.length} บันทึกการตรวจ</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 3: ตรวจเขตพื้นที่แล้ว -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition">
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ตรวจเขตพื้นที่แล้ว</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-2xl sm:text-3xl font-extrabold text-amber-700">${inspectedAreas.size}</span>
+                <span class="text-xs text-slate-400 font-medium">/ ${totalAreas} เขต</span>
+              </div>
+              <div class="w-28 bg-slate-100 rounded-full h-1.5 overflow-hidden mt-1">
+                <div class="bg-amber-500 h-1.5 rounded-full" style="width: ${totalAreas > 0 ? (inspectedAreas.size / totalAreas) * 100 : 0}%"></div>
+              </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card 4: คะแนนเฉลี่ยเขตพื้นที่ -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:shadow-md transition">
+            <div class="space-y-1">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">คะแนนเฉลี่ยเขตพื้นที่</span>
+              <div class="flex items-baseline space-x-2">
+                <span class="text-2xl sm:text-3xl font-extrabold ${areaAvgPercent >= 80 ? 'text-amber-700' : 'text-slate-800'}">${areaAvgPercent}%</span>
+                <span class="text-xs ${areaAvgPercent >= 80 ? 'text-amber-600' : 'text-slate-400'} font-medium">ภาพรวม</span>
+              </div>
+              <span class="inline-block text-[11px] text-slate-400">จาก ${areaLogs.length} บันทึกการตรวจ</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Bar: Reload & Export -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center space-x-2">
+            <h3 class="text-base font-bold text-slate-800">ตารางสรุปคะแนนห้องเรียนวันนี้</h3>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">ประจำวัน</span>
+          </div>
+          <div class="flex items-center space-x-2 w-full sm:w-auto">
+            <button onclick="handleReloadTodayData()" class="flex-1 sm:flex-initial inline-flex items-center justify-center space-x-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+              <svg id="reloadSpinnerIcon" class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>รีโหลด</span>
+            </button>
+            <button onclick="exportTodaySummaryToCSV()" class="flex-1 sm:flex-initial inline-flex items-center justify-center space-x-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>ดาวน์โหลดสรุปข้อมูลวันนี้ (.xlsx/.csv)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Daily Summary Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-3.5 px-4 sm:px-6">ห้อง</th>
+                  <th class="py-3.5 px-4">ครูที่ปรึกษา</th>
+                  <th class="py-3.5 px-4 text-center">คะแนนห้องเรียน</th>
+                  <th class="py-3.5 px-4 text-center">คะแนนเขตพื้นที่</th>
+                  <th class="py-3.5 px-4 sm:px-6 text-center">ดูข้อมูล</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${renderClassroomSummaryRows()}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderClassroomSummaryRows() {
+      if (AppState.classrooms.length === 0) {
+        return `
+          <tr>
+            <td colspan="5" class="py-8 text-center text-slate-400">ยังไม่มีข้อมูลห้องเรียนในระบบ</td>
+          </tr>
+        `;
+      }
+
+      return AppState.classrooms.map(c => {
+        // Find today's room inspection log
+        const roomLog = AppState.todaySummary.find(l => l.type === 'room' && l.target_id === c.classroom);
+        // Find today's area inspection log
+        const areaLog = AppState.todaySummary.find(l => l.type === 'area' && l.target_id === c.area_id);
+
+        // Advisor name formatting
+        let advisorDisplay = '-';
+        if (c.advisors) {
+          if (Array.isArray(c.advisors)) {
+            advisorDisplay = c.advisors.map(name => {
+              const parts = name.split(' ');
+              return parts[0] || name;
+            }).join(', ');
+          } else {
+            advisorDisplay = String(c.advisors);
+          }
+        }
+
+        // Room Score Badge
+        let roomBadgeHtml = '';
+        if (roomLog) {
+          const pct = Number(roomLog.percentage) || 0;
+          roomBadgeHtml = `
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getScoreBadgeStyle(pct)}">
+              ${roomLog.total_score}/${roomLog.max_score} (${pct}%)
+            </span>
+          `;
+        } else {
+          roomBadgeHtml = `
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+              ยังไม่ได้ตรวจ
+            </span>
+          `;
+        }
+
+        // Area Score Badge
+        let areaBadgeHtml = '';
+        if (areaLog) {
+          const pct = Number(areaLog.percentage) || 0;
+          areaBadgeHtml = `
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getScoreBadgeStyle(pct)}">
+              ${areaLog.total_score}/${areaLog.max_score} (${pct}%)
+            </span>
+          `;
+        } else {
+          areaBadgeHtml = `
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+              ยังไม่ได้ตรวจ
+            </span>
+          `;
+        }
+
+        return `
+          <tr class="hover:bg-slate-50/70 transition">
+            <td class="py-4 px-4 sm:px-6 font-bold text-slate-800 whitespace-nowrap">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold mr-2">
+                ${c.classroom}
+              </span>
+              <span>ห้อง ${c.classroom}</span>
+            </td>
+            <td class="py-4 px-4 text-xs sm:text-sm text-slate-600">${advisorDisplay}</td>
+            <td class="py-4 px-4 text-center whitespace-nowrap">${roomBadgeHtml}</td>
+            <td class="py-4 px-4 text-center whitespace-nowrap">${areaBadgeHtml}</td>
+            <td class="py-4 px-4 sm:px-6 text-center whitespace-nowrap">
+              <div class="inline-flex rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+                <button type="button" 
+                        onclick="openInspectionDetailModal('${roomLog ? roomLog.record_id : ''}', 'room', '${c.classroom}')"
+                        class="px-2.5 py-1 text-xs font-semibold ${roomLog ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'} border-r border-slate-200 transition">
+                  ห้องเรียน
+                </button>
+                <button type="button" 
+                        onclick="openInspectionDetailModal('${areaLog ? areaLog.record_id : ''}', 'area', '${c.area_id}')"
+                        class="px-2.5 py-1 text-xs font-semibold ${areaLog ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'} transition">
+                  เขตพื้นที่
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function handleReloadTodayData() {
+      const icon = document.getElementById('reloadSpinnerIcon');
+      if (icon) icon.classList.add('animate-spin');
+      try {
+        await loadInitialData();
+        await swalShowSuccess('อัปเดตข้อมูลล่าสุดแล้ว', '', 1000);
+      } finally {
+        if (icon) icon.classList.remove('animate-spin');
+      }
+    }
+
+    // =================================================================
+    // 11. INSPECTION DETAIL MODAL & FANCYBOX 5 GALLERY
+    // =================================================================
+
+    function openInspectionDetailModal(recordId, fallbackType, targetId) {
+      try {
+        let record = null;
+        if (recordId) {
+          record = AppState.todaySummary.find(l => l.record_id === recordId);
+        }
+
+        const modal = document.getElementById('inspectionDetailModal');
+        const card = document.getElementById('inspectionDetailCard');
+        const titleEl = document.getElementById('detailModalTitle');
+        const subtitleEl = document.getElementById('detailModalSubtitle');
+        const inspectorEl = document.getElementById('detailInspector');
+        const scoreEl = document.getElementById('detailScore');
+        const badgeEl = document.getElementById('detailPercentBadge');
+        const tbody = document.getElementById('detailChecklistTbody');
+        const commentBox = document.getElementById('detailCommentBox');
+        const commentText = document.getElementById('detailCommentText');
+        const galleryGrid = document.getElementById('detailGalleryGrid');
+
+        if (!record) {
+          // Show not yet inspected state
+          const targetName = fallbackType === 'room' ? `ห้องเรียน ${targetId}` : `เขตพื้นที่ ${targetId}`;
+          titleEl.textContent = `${targetName} (ยังไม่ได้ตรวจวันนี้)`;
+          subtitleEl.textContent = 'ยังไม่มีบันทึกการตรวจสอบความสะอาดในวันที่ปัจจุบัน';
+          inspectorEl.textContent = '-';
+          scoreEl.textContent = '0 / 0';
+          badgeEl.textContent = 'ยังไม่ได้ตรวจ';
+          badgeEl.className = 'inline-block px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-500';
+          tbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-slate-400 text-xs">ไม่มีข้อมูล</td></tr>';
+          commentBox.classList.add('hidden');
+          galleryGrid.innerHTML = '<p class="col-span-3 sm:col-span-5 text-xs text-slate-400 py-3 text-center">ไม่มีรูปภาพประกอบ</p>';
+        } else {
+          // Populate record data
+          titleEl.textContent = `${record.target_name || record.target_id}`;
+          subtitleEl.textContent = `รหัสบันทึก: ${record.record_id} • เวลา: ${record.timestamp || '-'}`;
+          inspectorEl.textContent = record.inspector_name || '-';
+          scoreEl.textContent = `${record.total_score} / ${record.max_score}`;
+          badgeEl.textContent = `${record.percentage}%`;
+          badgeEl.className = `inline-block px-2.5 py-0.5 text-xs font-bold rounded-full ${getScoreBadgeStyle(record.percentage)}`;
+
+          // Checklist table
+          tbody.innerHTML = '';
+          const scores = Array.isArray(record.scores) ? record.scores : [];
+          if (scores.length > 0) {
+            scores.forEach(item => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td class="py-2.5 px-3 font-medium text-slate-800">${item.checklist_name || item.checklist_id}</td>
+                <td class="py-2.5 px-3 text-center font-bold text-emerald-700">${item.score}</td>
+                <td class="py-2.5 px-3 text-center text-slate-400">${item.max_score}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          } else {
+            tbody.innerHTML = '<tr><td colspan="3" class="py-3 text-center text-slate-400 text-xs">ไม่มีรายละเอียดรายข้อ</td></tr>';
+          }
+
+          // Comment
+          if (record.comment && record.comment.trim() !== '') {
+            commentText.textContent = record.comment;
+            commentBox.classList.remove('hidden');
+          } else {
+            commentBox.classList.add('hidden');
+          }
+
+          // Gallery (Fancybox 5)
+          galleryGrid.innerHTML = '';
+          const images = Array.isArray(record.image_urls) ? record.image_urls : [];
+          if (images.length > 0) {
+            images.forEach((img, idx) => {
+              const imgUrl = typeof img === 'string' ? img : (img.url || img.driveUrl || '');
+              const thumb = document.createElement('a');
+              thumb.href = imgUrl;
+              thumb.setAttribute('data-fancybox', 'inspection-gallery');
+              thumb.setAttribute('data-caption', `${record.target_name} (รูปที่ ${idx + 1}) - ผู้ตรวจ: ${record.inspector_name}`);
+              thumb.className = 'relative h-24 rounded-xl overflow-hidden border border-slate-200 shadow-sm block group bg-slate-100';
+              thumb.innerHTML = `
+                <img src="${imgUrl}" alt="รูปภาพตรวจ ${idx + 1}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                </div>
+              `;
+              galleryGrid.appendChild(thumb);
+            });
+          } else {
+            galleryGrid.innerHTML = '<p class="col-span-3 sm:col-span-5 text-xs text-slate-400 py-3 text-center">ไม่มีรูปภาพแนบในรายการนี้</p>';
+          }
+        }
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          modal.classList.remove('opacity-0');
+          card.classList.remove('scale-95');
+        }, 10);
+      } catch (err) {
+        console.error('Error opening detail modal:', err);
+      }
+    }
+
+    function closeInspectionDetailModal() {
+      const modal = document.getElementById('inspectionDetailModal');
+      const card = document.getElementById('inspectionDetailCard');
+      modal.classList.add('opacity-0');
+      card.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    // =================================================================
+    // 12. EXPORT TO CSV / EXCEL ENGINE (UTF-8 BOM)
+    // =================================================================
+
+    function exportTodaySummaryToCSV() {
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        let csvContent = "\uFEFF"; // UTF-8 BOM for MS Excel compatibility
+        csvContent += "ห้องเรียน,ครูที่ปรึกษา,คะแนนห้องเรียน (เต็ม),ร้อยละห้องเรียน,สถานะตรวจห้องเรียน,เขตพื้นที่รับผิดชอบ,คะแนนเขตพื้นที่ (เต็ม),ร้อยละเขตพื้นที่,สถานะตรวจเขตพื้นที่\n";
+
+        AppState.classrooms.forEach(c => {
+          const roomLog = AppState.todaySummary.find(l => l.type === 'room' && l.target_id === c.classroom);
+          const areaLog = AppState.todaySummary.find(l => l.type === 'area' && l.target_id === c.area_id);
+
+          const advisorsStr = Array.isArray(c.advisors) ? `"${c.advisors.join('; ')}"` : `"${c.advisors || ''}"`;
+          const roomScore = roomLog ? `${roomLog.total_score}/${roomLog.max_score}` : '-';
+          const roomPct = roomLog ? `${roomLog.percentage}%` : 'ยังไม่ได้ตรวจ';
+          const roomStatus = roomLog ? 'ตรวจแล้ว' : 'ยังไม่ได้ตรวจ';
+
+          const areaScore = areaLog ? `${areaLog.total_score}/${areaLog.max_score}` : '-';
+          const areaPct = areaLog ? `${areaLog.percentage}%` : 'ยังไม่ได้ตรวจ';
+          const areaStatus = areaLog ? 'ตรวจแล้ว' : 'ยังไม่ได้ตรวจ';
+
+          csvContent += `"${c.classroom}",${advisorsStr},"${roomScore}","${roomPct}","${roomStatus}","${c.area_id}","${areaScore}","${areaPct}","${areaStatus}"\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `รายงานความสะอาด_${todayStr}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        swalShowSuccess('ดาวน์โหลดรายงานเรียบร้อยแล้ว', '', 1200);
+      } catch (err) {
+        console.error('Export CSV error:', err);
+        swalShowError('ดาวน์โหลดไม่สำเร็จ', err.message);
+      }
+    }
+
+    // =================================================================
+    // 13. STATS & SETTINGS TABS
+    // =================================================================
+
+    function renderStatsTab() {
+      const container = document.getElementById('statsContainer');
+      if (!container) return;
+
+      const roomLogs = AppState.todaySummary.filter(l => l.type === 'room');
+      const sortedRooms = [...AppState.classrooms].map(c => {
+        const log = roomLogs.find(l => l.target_id === c.classroom);
+        return {
+          classroom: c.classroom,
+          advisors: c.advisors,
+          percentage: log ? Number(log.percentage) : -1,
+          total_score: log ? log.total_score : 0,
+          max_score: log ? log.max_score : 0
+        };
+      }).sort((a, b) => b.percentage - a.percentage);
+
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+              <h2 class="text-xl font-bold text-slate-800">อันดับสถิติความสะอาดห้องเรียน</h2>
+              <p class="text-xs text-slate-500">จัดอันดับตามคะแนนประเมินประจำวัน</p>
+            </div>
+            <span class="px-3 py-1 bg-cyan-50 text-cyan-700 text-xs font-bold rounded-xl border border-cyan-200">
+              ประจำวัน
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${sortedRooms.map((r, idx) => {
+        const isChecked = r.percentage >= 0;
+        return `
+                <div class="p-4 rounded-xl border ${idx === 0 && isChecked ? 'border-amber-400 bg-amber-50/40 shadow-sm' : 'border-slate-200 bg-slate-50/50'} space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-7 h-7 rounded-lg ${idx === 0 && isChecked ? 'bg-amber-500 text-white font-black' : 'bg-slate-200 text-slate-700 font-bold'} text-xs flex items-center justify-center">
+                        ${idx + 1}
+                      </span>
+                      <h4 class="font-bold text-slate-800">ห้อง ${r.classroom}</h4>
+                    </div>
+                    ${isChecked ? `
+                      <span class="text-xs font-bold px-2 py-0.5 rounded-md ${getScoreBadgeStyle(r.percentage)}">
+                        ${r.percentage}%
+                      </span>
+                    ` : `
+                      <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-400">
+                        ยังไม่ได้ตรวจ
+                      </span>
+                    `}
+                  </div>
+                  <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div class="${r.percentage >= 80 ? 'bg-emerald-500' : (r.percentage >= 65 ? 'bg-blue-500' : 'bg-amber-500')} h-2 rounded-full" style="width: ${isChecked ? r.percentage : 0}%"></div>
+                  </div>
+                </div>
+              `;
+      }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSystemSettingsTab() {
+      const container = document.getElementById('systemSettingsContainer');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 class="text-xl font-bold text-slate-800">ตั้งค่าระบบ (System Settings)</h2>
+            <p class="text-xs text-slate-500">ข้อมูลการตั้งค่าหลักจากชีต SETTING</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <span class="text-xs font-semibold text-slate-500">ชื่อโรงเรียน</span>
+              <p class="font-bold text-slate-800">${AppState.settings.school_name || '-'}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <span class="text-xs font-semibold text-slate-500">ภาคเรียนปัจจุบัน</span>
+              <p class="font-bold text-slate-800">${AppState.settings.academic_term || '-'}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <span class="text-xs font-semibold text-slate-500">ระบบตรวจห้องเรียน</span>
+              <p class="font-bold text-emerald-600">${AppState.settings.enable_room_check || 'TRUE'}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <span class="text-xs font-semibold text-slate-500">ระบบตรวจเขตพื้นที่</span>
+              <p class="font-bold text-emerald-600">${AppState.settings.enable_area_check || 'TRUE'}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderUserSettingsTab() {
+      const container = document.getElementById('userSettingsContainer');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <div class="border-b border-slate-100 pb-4">
+            <h2 class="text-xl font-bold text-slate-800">จัดการผู้ใช้งาน (User Management)</h2>
+            <p class="text-xs text-slate-500">รายชื่อผู้มีสิทธิ์เข้าตรวจและผู้ดูแลระบบ</p>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">รหัสผู้ใช้</th>
+                  <th class="py-3 px-4">ชื่อ-นามสกุล</th>
+                  <th class="py-3 px-4">บทบาท (Role)</th>
+                  <th class="py-3 px-4">สิทธิ์การตรวจ</th>
+                  <th class="py-3 px-4 text-center">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${AppState.users.map(u => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-3 px-4 font-mono font-bold text-xs text-slate-600">${u.user_id}</td>
+                    <td class="py-3 px-4 font-medium text-slate-800">${u.full_name}</td>
+                    <td class="py-3 px-4 text-xs font-semibold text-emerald-700">${u.role}</td>
+                    <td class="py-3 px-4 text-xs text-slate-500">${Array.isArray(u.allowed_rooms) ? u.allowed_rooms.join(', ') : u.allowed_rooms}</td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">ใช้งานได้</span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+
+</html>
