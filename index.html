@@ -1594,6 +1594,7 @@
               ยกเลิก
             </button>
           </div>
+        </div>
       </div>
     </div>
 
@@ -1609,16 +1610,37 @@
         id="classroomModalCard"
       >
         <!-- Modal Header -->
-        <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div
+          class="flex items-start justify-between border-b border-slate-100 pb-4"
+        >
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            <div
+              class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
               </svg>
             </div>
             <div>
-              <h3 id="classroomModalTitle" class="text-lg font-bold text-slate-800">เพิ่มห้องเรียนใหม่</h3>
-              <p id="classroomModalSubtitle" class="text-xs text-slate-500">กำหนดห้องเรียน เขตพื้นที่ และครูที่ปรึกษา</p>
+              <h3
+                id="classroomModalTitle"
+                class="text-lg font-bold text-slate-800"
+              >
+                เพิ่มห้องเรียนใหม่
+              </h3>
+              <p id="classroomModalSubtitle" class="text-xs text-slate-500">
+                กำหนดห้องเรียน เขตพื้นที่ และครูที่ปรึกษา
+              </p>
             </div>
           </div>
           <button
@@ -1626,26 +1648,43 @@
             onclick="closeClassroomModal()"
             class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         <!-- Modal Body (Scrollable) -->
         <div class="overflow-y-auto py-4 space-y-4 flex-grow pr-1">
-          <input type="hidden" id="classroomModalMode" value="create">
-          <input type="hidden" id="classroomModalOldClassroom" value="">
+          <input type="hidden" id="classroomModalMode" value="create" />
+          <input type="hidden" id="classroomModalOldClassroom" value="" />
 
           <!-- Field 1: Classroom (ม.x/y) -->
           <div class="space-y-1.5">
             <label class="block text-xs font-bold text-slate-700">
-              ห้องเรียน: <span class="text-red-500">* (รูปแบบ ม.1/1 - ม.6/15)</span>
+              ห้องเรียน:
+              <span class="text-red-500">* (รูปแบบ ม.1/1 - ม.6/15)</span>
             </label>
             <div class="grid grid-cols-2 gap-2.5">
               <div>
-                <span class="block text-[11px] text-slate-500 mb-1">ระดับชั้น:</span>
-                <select id="classroomGradeSelect" onchange="handleClassroomInputChange()" class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 font-semibold text-slate-800">
+                <span class="block text-[11px] text-slate-500 mb-1"
+                  >ระดับชั้น:</span
+                >
+                <select
+                  id="classroomGradeSelect"
+                  onchange="handleClassroomInputChange()"
+                  class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 font-semibold text-slate-800"
+                >
                   <option value="ม.1">มัธยมศึกษาปีที่ 1 (ม.1)</option>
                   <option value="ม.2">มัธยมศึกษาปีที่ 2 (ม.2)</option>
                   <option value="ม.3">มัธยมศึกษาปีที่ 3 (ม.3)</option>
@@ -1655,8 +1694,14 @@
                 </select>
               </div>
               <div>
-                <span class="block text-[11px] text-slate-500 mb-1">ห้องที่ (1-15):</span>
-                <select id="classroomRoomSelect" onchange="handleClassroomInputChange()" class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 font-semibold text-slate-800">
+                <span class="block text-[11px] text-slate-500 mb-1"
+                  >ห้องที่ (1-15):</span
+                >
+                <select
+                  id="classroomRoomSelect"
+                  onchange="handleClassroomInputChange()"
+                  class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 font-semibold text-slate-800"
+                >
                   <option value="1">ห้อง 1 (/1)</option>
                   <option value="2">ห้อง 2 (/2)</option>
                   <option value="3">ห้อง 3 (/3)</option>
@@ -1676,28 +1721,63 @@
               </div>
             </div>
             <!-- Duplicate Classroom Alert -->
-            <div id="classroomDuplicateAlert" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 mt-1">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div
+              id="classroomDuplicateAlert"
+              class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 mt-1"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
-              <span id="classroomDuplicateText">ห้องเรียนนี้มีอยู่ในระบบแล้ว</span>
+              <span id="classroomDuplicateText"
+                >ห้องเรียนนี้มีอยู่ในระบบแล้ว</span
+              >
             </div>
           </div>
 
           <!-- Field 2: Area ID -->
           <div class="space-y-1.5">
             <label class="block text-xs font-bold text-slate-700">
-              เขตพื้นที่รับผิดชอบ: <span class="text-red-500">* (ห้ามซ้ำกับห้องอื่น)</span>
+              เขตพื้นที่รับผิดชอบ:
+              <span class="text-red-500">* (ห้ามซ้ำกับห้องอื่น)</span>
             </label>
-            <select id="classroomAreaSelect" onchange="handleClassroomAreaChange()" class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 font-medium text-slate-800">
+            <select
+              id="classroomAreaSelect"
+              onchange="handleClassroomAreaChange()"
+              class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 font-medium text-slate-800"
+            >
               <!-- dynamic options populated from AppState.areas -->
             </select>
             <!-- Duplicate Area Alert -->
-            <div id="areaDuplicateAlert" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 mt-1">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div
+              id="areaDuplicateAlert"
+              class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 flex items-center gap-1.5 mt-1"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
-              <span id="areaDuplicateText">เขตพื้นที่นี้ถูกผูกไว้กับห้องอื่นแล้ว</span>
+              <span id="areaDuplicateText"
+                >เขตพื้นที่นี้ถูกผูกไว้กับห้องอื่นแล้ว</span
+              >
             </div>
           </div>
 
@@ -1705,14 +1785,29 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="block text-xs font-bold text-slate-700">
-                ครูที่ปรึกษา: <span class="text-slate-500 font-normal">(1 - 3 คน จากชีต DB_teachers)</span>
+                ครูที่ปรึกษา:
+                <span class="text-slate-500 font-normal"
+                  >(1 - 3 คน จากชีต DB_teachers)</span
+                >
               </label>
-              <button type="button"
-                      id="addAdvisorBtn"
-                      onclick="addAdvisorSlot()"
-                      class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              <button
+                type="button"
+                id="addAdvisorBtn"
+                onclick="addAdvisorSlot()"
+                class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition"
+              >
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 <span>เพิ่มครูที่ปรึกษา</span>
               </button>
@@ -1723,9 +1818,22 @@
               <!-- Slot 1, Slot 2, Slot 3 -->
             </div>
             <!-- Duplicate Advisor Alert -->
-            <div id="advisorDuplicateAlert" class="hidden text-xs text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 flex items-center gap-1.5">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div
+              id="advisorDuplicateAlert"
+              class="hidden text-xs text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 flex items-center gap-1.5"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
               <span>มีการเลือกครูที่ปรึกษาซ้ำกันในห้องนี้</span>
             </div>
@@ -1733,7 +1841,9 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="border-t border-slate-100 pt-3 flex items-center justify-end gap-2">
+        <div
+          class="border-t border-slate-100 pt-3 flex items-center justify-end gap-2"
+        >
           <button
             type="button"
             onclick="closeClassroomModal()"
@@ -1765,16 +1875,34 @@
         id="areaModalCard"
       >
         <!-- Modal Header -->
-        <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div
+          class="flex items-start justify-between border-b border-slate-100 pb-4"
+        >
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div
+              class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <div>
-              <h3 id="areaModalTitle" class="text-lg font-bold text-slate-800">เพิ่มเขตพื้นที่ใหม่</h3>
-              <p id="areaModalSubtitle" class="text-xs text-slate-500">กำหนดรหัสเขต ชื่อ และรายละเอียดขอบเขตบริการ</p>
+              <h3 id="areaModalTitle" class="text-lg font-bold text-slate-800">
+                เพิ่มเขตพื้นที่ใหม่
+              </h3>
+              <p id="areaModalSubtitle" class="text-xs text-slate-500">
+                กำหนดรหัสเขต ชื่อ และรายละเอียดขอบเขตบริการ
+              </p>
             </div>
           </div>
           <button
@@ -1782,26 +1910,43 @@
             onclick="closeAreaModal()"
             class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         <!-- Modal Body (Scrollable) -->
         <div class="overflow-y-auto py-4 space-y-4 flex-grow pr-1">
-          <input type="hidden" id="areaModalMode" value="create">
+          <input type="hidden" id="areaModalMode" value="create" />
 
           <!-- Field 1: Area ID (Auto-Generated) -->
           <div class="space-y-1.5">
             <div class="flex items-center justify-between">
-              <label class="block text-xs font-bold text-slate-700">รหัสเขตพื้นที่ (Area ID):</label>
-              <span class="text-[11px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-semibold">🤖 สร้างรหัสอัตโนมัติ (+1)</span>
+              <label class="block text-xs font-bold text-slate-700"
+                >รหัสเขตพื้นที่ (Area ID):</label
+              >
+              <span
+                class="text-[11px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-semibold"
+                >🤖 สร้างรหัสอัตโนมัติ (+1)</span
+              >
             </div>
-            <input type="text"
-                   id="areaIdInput"
-                   readonly
-                   class="w-full text-sm p-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-mono font-bold cursor-not-allowed">
+            <input
+              type="text"
+              id="areaIdInput"
+              readonly
+              class="w-full text-sm p-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-mono font-bold cursor-not-allowed"
+            />
           </div>
 
           <!-- Field 2: Area Name -->
@@ -1809,36 +1954,57 @@
             <label class="block text-xs font-bold text-slate-700">
               ชื่อเขตพื้นที่รับผิดชอบ: <span class="text-red-500">*</span>
             </label>
-            <input type="text"
-                   id="areaNameInput"
-                   placeholder="เช่น บริเวณหน้าเสาธง, โรงอาหาร, หอประชุม"
-                   class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 font-semibold text-slate-800 transition">
+            <input
+              type="text"
+              id="areaNameInput"
+              placeholder="เช่น บริเวณหน้าเสาธง, โรงอาหาร, หอประชุม"
+              class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 font-semibold text-slate-800 transition"
+            />
           </div>
 
           <!-- Field 3: Area Description -->
           <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-slate-700">รายละเอียดขอบเขตพื้นที่:</label>
-            <textarea id="areaDescriptionInput"
-                      rows="3"
-                      placeholder="ระบุคำอธิบายขอบเขต เช่น ทางเดินด้านหน้าทั้งหมด และบันไดทางขึ้นอาคาร..."
-                      class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 transition resize-none"></textarea>
+            <label class="block text-xs font-bold text-slate-700"
+              >รายละเอียดขอบเขตพื้นที่:</label
+            >
+            <textarea
+              id="areaDescriptionInput"
+              rows="3"
+              placeholder="ระบุคำอธิบายขอบเขต เช่น ทางเดินด้านหน้าทั้งหมด และบันไดทางขึ้นอาคาร..."
+              class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-amber-100 transition resize-none"
+            ></textarea>
           </div>
 
           <!-- Field 4: Status (is_active) -->
-          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between">
+          <div
+            class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between"
+          >
             <div class="space-y-0.5">
-              <span class="text-xs font-bold text-slate-800 block">สถานะการใช้งานเขตพื้นที่</span>
-              <p class="text-[11px] text-slate-500">เปิดให้สามารถเลือกตรวจและผูกกับห้องเรียนได้</p>
+              <span class="text-xs font-bold text-slate-800 block"
+                >สถานะการใช้งานเขตพื้นที่</span
+              >
+              <p class="text-[11px] text-slate-500">
+                เปิดให้สามารถเลือกตรวจและผูกกับห้องเรียนได้
+              </p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="areaIsActiveInput" class="sr-only peer" checked>
-              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600 shadow-inner"></div>
+              <input
+                type="checkbox"
+                id="areaIsActiveInput"
+                class="sr-only peer"
+                checked
+              />
+              <div
+                class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600 shadow-inner"
+              ></div>
             </label>
           </div>
         </div>
 
         <!-- Modal Footer -->
-        <div class="border-t border-slate-100 pt-3 flex items-center justify-end gap-2">
+        <div
+          class="border-t border-slate-100 pt-3 flex items-center justify-end gap-2"
+        >
           <button
             type="button"
             onclick="closeAreaModal()"
@@ -1870,16 +2036,37 @@
         id="checklistModalCard"
       >
         <!-- Modal Header -->
-        <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div
+          class="flex items-start justify-between border-b border-slate-100 pb-4"
+        >
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            <div
+              class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
               </svg>
             </div>
             <div>
-              <h3 id="checklistModalTitle" class="text-lg font-bold text-slate-800">เพิ่มเกณฑ์การประเมิน</h3>
-              <p id="checklistModalSubtitle" class="text-xs text-slate-500">กำหนดชื่อเกณฑ์ รายละเอียด และคะแนนเต็ม (2-10)</p>
+              <h3
+                id="checklistModalTitle"
+                class="text-lg font-bold text-slate-800"
+              >
+                เพิ่มเกณฑ์การประเมิน
+              </h3>
+              <p id="checklistModalSubtitle" class="text-xs text-slate-500">
+                กำหนดชื่อเกณฑ์ รายละเอียด และคะแนนเต็ม (2-10)
+              </p>
             </div>
           </div>
           <button
@@ -1887,27 +2074,60 @@
             onclick="closeChecklistModal()"
             class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
         <!-- Modal Body (Scrollable) -->
         <div class="overflow-y-auto py-4 space-y-4 flex-grow pr-1">
-          <input type="hidden" id="checklistModalMode" value="create">
+          <input type="hidden" id="checklistModalMode" value="create" />
 
           <!-- Field 1: Checklist Type (Room / Area) -->
           <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-slate-700">ประเภทรายการเกณฑ์การตรวจ:</label>
+            <label class="block text-xs font-bold text-slate-700"
+              >ประเภทรายการเกณฑ์การตรวจ:</label
+            >
             <div id="checklistTypeRadioGroup" class="grid grid-cols-2 gap-2">
-              <label class="flex items-center space-x-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition peer-checked:bg-emerald-50">
-                <input type="radio" name="checklistTypeRadio" value="room" checked onchange="handleChecklistTypeChange('room')" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
-                <span class="text-xs font-bold text-slate-800">🏫 ตรวจห้องเรียน (room)</span>
+              <label
+                class="flex items-center space-x-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition peer-checked:bg-emerald-50"
+              >
+                <input
+                  type="radio"
+                  name="checklistTypeRadio"
+                  value="room"
+                  checked
+                  onchange="handleChecklistTypeChange('room')"
+                  class="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span class="text-xs font-bold text-slate-800"
+                  >🏫 ตรวจห้องเรียน (room)</span
+                >
               </label>
-              <label class="flex items-center space-x-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition peer-checked:bg-amber-50">
-                <input type="radio" name="checklistTypeRadio" value="area" onchange="handleChecklistTypeChange('area')" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
-                <span class="text-xs font-bold text-slate-800">📍 ตรวจเขตพื้นที่ (area)</span>
+              <label
+                class="flex items-center space-x-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition peer-checked:bg-amber-50"
+              >
+                <input
+                  type="radio"
+                  name="checklistTypeRadio"
+                  value="area"
+                  onchange="handleChecklistTypeChange('area')"
+                  class="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                />
+                <span class="text-xs font-bold text-slate-800"
+                  >📍 ตรวจเขตพื้นที่ (area)</span
+                >
               </label>
             </div>
           </div>
@@ -1915,13 +2135,20 @@
           <!-- Field 2: Checklist ID (Auto-Generated) -->
           <div class="space-y-1.5">
             <div class="flex items-center justify-between">
-              <label class="block text-xs font-bold text-slate-700">รหัสเกณฑ์ประเมิน (Checklist ID):</label>
-              <span class="text-[11px] px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200 font-semibold">🤖 สร้างรหัสอัตโนมัติ (+1)</span>
+              <label class="block text-xs font-bold text-slate-700"
+                >รหัสเกณฑ์ประเมิน (Checklist ID):</label
+              >
+              <span
+                class="text-[11px] px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200 font-semibold"
+                >🤖 สร้างรหัสอัตโนมัติ (+1)</span
+              >
             </div>
-            <input type="text"
-                   id="checklistIdInput"
-                   readonly
-                   class="w-full text-sm p-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-mono font-bold cursor-not-allowed">
+            <input
+              type="text"
+              id="checklistIdInput"
+              readonly
+              class="w-full text-sm p-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-mono font-bold cursor-not-allowed"
+            />
           </div>
 
           <!-- Field 3: Checklist Name -->
@@ -1929,52 +2156,80 @@
             <label class="block text-xs font-bold text-slate-700">
               ชื่อเกณฑ์การประเมิน: <span class="text-red-500">*</span>
             </label>
-            <input type="text"
-                   id="checklistNameInput"
-                   placeholder="เช่น ความสะอาดของพื้นห้อง, การจัดวางโต๊ะเก้าอี้"
-                   class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-100 font-semibold text-slate-800 transition">
+            <input
+              type="text"
+              id="checklistNameInput"
+              placeholder="เช่น ความสะอาดของพื้นห้อง, การจัดวางโต๊ะเก้าอี้"
+              class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-100 font-semibold text-slate-800 transition"
+            />
           </div>
 
           <!-- Field 4: Checklist Detail -->
           <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-slate-700">คำอธิบายเกณฑ์และเงื่อนไขการให้คะแนน:</label>
-            <textarea id="checklistDetailInput"
-                      rows="2"
-                      placeholder="เช่น ต้องสะอาด ไม่มีขยะ ฝุ่น และเศษกระดาษตกค้าง..."
-                      class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-100 transition resize-none"></textarea>
+            <label class="block text-xs font-bold text-slate-700"
+              >คำอธิบายเกณฑ์และเงื่อนไขการให้คะแนน:</label
+            >
+            <textarea
+              id="checklistDetailInput"
+              rows="2"
+              placeholder="เช่น ต้องสะอาด ไม่มีขยะ ฝุ่น และเศษกระดาษตกค้าง..."
+              class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-100 transition resize-none"
+            ></textarea>
           </div>
 
           <!-- Field 5: Max Score (2 - 10) -->
           <div class="space-y-1.5">
             <label class="block text-xs font-bold text-slate-700">
-              คะแนนเต็ม (Max Score): <span class="text-red-500">* (กำหนดได้ตั้งแต่ 2 ถึง 10 คะแนน)</span>
+              คะแนนเต็ม (Max Score):
+              <span class="text-red-500"
+                >* (กำหนดได้ตั้งแต่ 2 ถึง 10 คะแนน)</span
+              >
             </label>
             <div class="flex items-center space-x-3">
-              <input type="number"
-                     id="checklistMaxScoreInput"
-                     min="2"
-                     max="10"
-                     value="3"
-                     class="w-28 text-center text-base p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-100 font-extrabold text-slate-800 transition">
-              <span class="text-xs text-slate-500 font-medium">คะแนน (อนุญาตเฉพาะจำนวนเต็ม 2 - 10)</span>
+              <input
+                type="number"
+                id="checklistMaxScoreInput"
+                min="2"
+                max="10"
+                value="3"
+                class="w-28 text-center text-base p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-cyan-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-100 font-extrabold text-slate-800 transition"
+              />
+              <span class="text-xs text-slate-500 font-medium"
+                >คะแนน (อนุญาตเฉพาะจำนวนเต็ม 2 - 10)</span
+              >
             </div>
           </div>
 
           <!-- Field 6: Status (is_active) -->
-          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between">
+          <div
+            class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between"
+          >
             <div class="space-y-0.5">
-              <span class="text-xs font-bold text-slate-800 block">สถานะการใช้งานเกณฑ์ประเมิน</span>
-              <p class="text-[11px] text-slate-500">เปิดให้แสดงในฟอร์มการตรวจความสะอาดประจำวัน</p>
+              <span class="text-xs font-bold text-slate-800 block"
+                >สถานะการใช้งานเกณฑ์ประเมิน</span
+              >
+              <p class="text-[11px] text-slate-500">
+                เปิดให้แสดงในฟอร์มการตรวจความสะอาดประจำวัน
+              </p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="checklistIsActiveInput" class="sr-only peer" checked>
-              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600 shadow-inner"></div>
+              <input
+                type="checkbox"
+                id="checklistIsActiveInput"
+                class="sr-only peer"
+                checked
+              />
+              <div
+                class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600 shadow-inner"
+              ></div>
             </label>
           </div>
         </div>
 
         <!-- Modal Footer -->
-        <div class="border-t border-slate-100 pt-3 flex items-center justify-end gap-2">
+        <div
+          class="border-t border-slate-100 pt-3 flex items-center justify-end gap-2"
+        >
           <button
             type="button"
             onclick="closeChecklistModal()"
@@ -2652,13 +2907,27 @@
       // ==========================================
       function switchTab(tabId) {
         try {
-          if (tabId === "roomCheck" && String(AppState.settings.enable_room_check).toUpperCase() === "FALSE") {
-            swalShowWarning("ระบบตรวจห้องเรียนปิดใช้งานชั่วคราว", "ขณะนี้ผู้ดูแลระบบได้ปิดการบันทึกการตรวจห้องเรียน");
+          if (
+            tabId === "roomCheck" &&
+            String(AppState.settings.enable_room_check).toUpperCase() ===
+              "FALSE"
+          ) {
+            swalShowWarning(
+              "ระบบตรวจห้องเรียนปิดใช้งานชั่วคราว",
+              "ขณะนี้ผู้ดูแลระบบได้ปิดการบันทึกการตรวจห้องเรียน",
+            );
             return;
           }
 
-          if (tabId === "areaCheck" && String(AppState.settings.enable_area_check).toUpperCase() === "FALSE") {
-            swalShowWarning("ระบบตรวจเขตพื้นที่ปิดใช้งานชั่วคราว", "ขณะนี้ผู้ดูแลระบบได้ปิดการบันทึกการตรวจเขตพื้นที่");
+          if (
+            tabId === "areaCheck" &&
+            String(AppState.settings.enable_area_check).toUpperCase() ===
+              "FALSE"
+          ) {
+            swalShowWarning(
+              "ระบบตรวจเขตพื้นที่ปิดใช้งานชั่วคราว",
+              "ขณะนี้ผู้ดูแลระบบได้ปิดการบันทึกการตรวจเขตพื้นที่",
+            );
             return;
           }
 
@@ -3226,7 +3495,7 @@
 
           swalShowLoading(
             "กำลังบันทึกข้อมูล...",
-            "กรุณารอสักครู่ ระบบกำลังบันทึกข้อมูล",
+            "กรุณารอสักครู่ ระบบกำลังบันทึกข้อมูลลงฐานข้อมูลลงฐานข้อมูล",
           );
 
           const payload = {
@@ -3932,7 +4201,7 @@
           <div class="mt-6 flex flex-wrap gap-2 pt-4 border-t border-white/10">
             <button type="button"
                     onclick="switchSystemSubTab('general')"
-                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === 'general' ? 'bg-white text-emerald-950 shadow-md scale-100' : 'bg-white/10 text-white hover:bg-white/20'}">
+                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === "general" ? "bg-white text-emerald-950 shadow-md scale-100" : "bg-white/10 text-white hover:bg-white/20"}">
               <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
@@ -3941,7 +4210,7 @@
 
             <button type="button"
                     onclick="switchSystemSubTab('classroom')"
-                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === 'classroom' ? 'bg-white text-emerald-950 shadow-md scale-100' : 'bg-white/10 text-white hover:bg-white/20'}">
+                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === "classroom" ? "bg-white text-emerald-950 shadow-md scale-100" : "bg-white/10 text-white hover:bg-white/20"}">
               <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
@@ -3950,7 +4219,7 @@
 
             <button type="button"
                     onclick="switchSystemSubTab('area')"
-                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === 'area' ? 'bg-white text-emerald-950 shadow-md scale-100' : 'bg-white/10 text-white hover:bg-white/20'}">
+                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === "area" ? "bg-white text-emerald-950 shadow-md scale-100" : "bg-white/10 text-white hover:bg-white/20"}">
               <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -3959,7 +4228,7 @@
 
             <button type="button"
                     onclick="switchSystemSubTab('checklist')"
-                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === 'checklist' ? 'bg-white text-emerald-950 shadow-md scale-100' : 'bg-white/10 text-white hover:bg-white/20'}">
+                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${subTab === "checklist" ? "bg-white text-emerald-950 shadow-md scale-100" : "bg-white/10 text-white hover:bg-white/20"}">
               <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
@@ -4000,10 +4269,17 @@
       // ==========================================
       function renderGeneralSettingsSubTab() {
         const announcement = AppState.settings.system_announcement || "";
-        const isRoomEnabled = String(AppState.settings.enable_room_check || "TRUE").toUpperCase() !== "FALSE";
-        const isAreaEnabled = String(AppState.settings.enable_area_check || "TRUE").toUpperCase() !== "FALSE";
+        const isRoomEnabled =
+          String(
+            AppState.settings.enable_room_check || "TRUE",
+          ).toUpperCase() !== "FALSE";
+        const isAreaEnabled =
+          String(
+            AppState.settings.enable_area_check || "TRUE",
+          ).toUpperCase() !== "FALSE";
         const academicTerm = AppState.settings.academic_term || "1/2569";
-        const schoolName = AppState.settings.school_name || "โรงเรียนประชาสงเคราะห์วิทยา";
+        const schoolName =
+          AppState.settings.school_name || "โรงเรียนประชาสงเคราะห์วิทยา";
 
         return `
         <div class="space-y-6">
@@ -4070,13 +4346,13 @@
               <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between hover:bg-slate-50 transition">
                 <div class="space-y-1 pr-2">
                   <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    <span id="roomStatusDot" class="w-2.5 h-2.5 rounded-full ${isRoomEnabled ? 'bg-emerald-500' : 'bg-slate-300'}"></span>
+                    <span id="roomStatusDot" class="w-2.5 h-2.5 rounded-full ${isRoomEnabled ? "bg-emerald-500" : "bg-slate-300"}"></span>
                     <span>ระบบตรวจห้องเรียน</span>
                   </span>
                   <p class="text-xs text-slate-500">อนุญาตให้บันทึกคะแนนห้องเรียน (ม.1 - ม.6)</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input type="checkbox" id="settingEnableRoomCheck" class="sr-only peer" ${isRoomEnabled ? 'checked' : ''} onchange="updateSwitchVisuals()">
+                  <input type="checkbox" id="settingEnableRoomCheck" class="sr-only peer" ${isRoomEnabled ? "checked" : ""} onchange="updateSwitchVisuals()">
                   <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 shadow-inner"></div>
                 </label>
               </div>
@@ -4085,13 +4361,13 @@
               <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between hover:bg-slate-50 transition">
                 <div class="space-y-1 pr-2">
                   <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    <span id="areaStatusDot" class="w-2.5 h-2.5 rounded-full ${isAreaEnabled ? 'bg-emerald-500' : 'bg-slate-300'}"></span>
+                    <span id="areaStatusDot" class="w-2.5 h-2.5 rounded-full ${isAreaEnabled ? "bg-emerald-500" : "bg-slate-300"}"></span>
                     <span>ระบบตรวจเขตพื้นที่</span>
                   </span>
                   <p class="text-xs text-slate-500">อนุญาตให้บันทึกคะแนนเขตพื้นที่รับผิดชอบ</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input type="checkbox" id="settingEnableAreaCheck" class="sr-only peer" ${isAreaEnabled ? 'checked' : ''} onchange="updateSwitchVisuals()">
+                  <input type="checkbox" id="settingEnableAreaCheck" class="sr-only peer" ${isAreaEnabled ? "checked" : ""} onchange="updateSwitchVisuals()">
                   <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 shadow-inner"></div>
                 </label>
               </div>
@@ -4171,7 +4447,9 @@
       }
 
       function handleAnnouncementInput(val) {
-        const previewBox = document.getElementById("announcementLivePreviewBox");
+        const previewBox = document.getElementById(
+          "announcementLivePreviewBox",
+        );
         if (previewBox) {
           previewBox.innerHTML = renderAnnouncementPreviewHtml(val);
         }
@@ -4192,24 +4470,36 @@
         const areaDot = document.getElementById("areaStatusDot");
 
         if (roomCheck && roomDot) {
-          roomDot.className = `w-2.5 h-2.5 rounded-full ${roomCheck.checked ? 'bg-emerald-500' : 'bg-slate-300'}`;
+          roomDot.className = `w-2.5 h-2.5 rounded-full ${roomCheck.checked ? "bg-emerald-500" : "bg-slate-300"}`;
         }
         if (areaCheck && areaDot) {
-          areaDot.className = `w-2.5 h-2.5 rounded-full ${areaCheck.checked ? 'bg-emerald-500' : 'bg-slate-300'}`;
+          areaDot.className = `w-2.5 h-2.5 rounded-full ${areaCheck.checked ? "bg-emerald-500" : "bg-slate-300"}`;
         }
       }
 
       async function saveGeneralSettings() {
         try {
-          const announcementInput = document.getElementById("settingAnnouncementInput");
-          const roomCheckSwitch = document.getElementById("settingEnableRoomCheck");
-          const areaCheckSwitch = document.getElementById("settingEnableAreaCheck");
+          const announcementInput = document.getElementById(
+            "settingAnnouncementInput",
+          );
+          const roomCheckSwitch = document.getElementById(
+            "settingEnableRoomCheck",
+          );
+          const areaCheckSwitch = document.getElementById(
+            "settingEnableAreaCheck",
+          );
           const termInput = document.getElementById("settingAcademicTermInput");
 
-          const announcementVal = announcementInput ? announcementInput.value.trim() : "";
-          const enableRoomVal = roomCheckSwitch && roomCheckSwitch.checked ? "TRUE" : "FALSE";
-          const enableAreaVal = areaCheckSwitch && areaCheckSwitch.checked ? "TRUE" : "FALSE";
-          const termVal = termInput ? termInput.value.trim() : (AppState.settings.academic_term || "1/2569");
+          const announcementVal = announcementInput
+            ? announcementInput.value.trim()
+            : "";
+          const enableRoomVal =
+            roomCheckSwitch && roomCheckSwitch.checked ? "TRUE" : "FALSE";
+          const enableAreaVal =
+            areaCheckSwitch && areaCheckSwitch.checked ? "TRUE" : "FALSE";
+          const termVal = termInput
+            ? termInput.value.trim()
+            : AppState.settings.academic_term || "1/2569";
 
           const confirmRes = await swalCustom().fire({
             title: "ยืนยันการบันทึกการตั้งค่า?",
@@ -4217,26 +4507,29 @@
             icon: "question",
             showCancelButton: true,
             confirmButtonText: "บันทึกการตั้งค่า",
-            cancelButtonText: "ยกเลิก"
+            cancelButtonText: "ยกเลิก",
           });
 
           if (!confirmRes.isConfirmed) return;
 
-          swalShowLoading("กำลังบันทึกการตั้งค่า...", "กรุณารอสักครู่ ระบบกำลังอัปเดตข้อมูลลงฐานข้อมูล");
+          swalShowLoading(
+            "กำลังบันทึกการตั้งค่า...",
+            "กรุณารอสักครู่ ระบบกำลังอัปเดตข้อมูลลงฐานข้อมูล",
+          );
 
           const payload = {
             action: "saveSystemSettings",
             system_announcement: announcementVal,
             enable_room_check: enableRoomVal,
             enable_area_check: enableAreaVal,
-            academic_term: termVal
+            academic_term: termVal,
           };
 
           if (GAS_API_URL && !GAS_API_URL.includes("placeholder")) {
             const response = await fetch(GAS_API_URL, {
               method: "POST",
               headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify(payload)
+              body: JSON.stringify(payload),
             });
             const res = await response.json();
             if (res.status !== "success") {
@@ -4251,7 +4544,11 @@
           AppState.settings.academic_term = termVal;
 
           applySettingsToUI();
-          await swalShowSuccess("บันทึกการตั้งค่าสำเร็จ!", "อัปเดตข้อมูลระบบเรียบร้อยแล้ว", 1500);
+          await swalShowSuccess(
+            "บันทึกการตั้งค่าสำเร็จ!",
+            "อัปเดตข้อมูลระบบเรียบร้อยแล้ว",
+            1500,
+          );
           renderSystemSettingsTab();
         } catch (err) {
           console.error("Save settings error:", err);
@@ -4268,23 +4565,35 @@
 
       function renderClassroomSettingsSubTab() {
         const classrooms = sortClassrooms(AppState.classrooms || []);
-        const searchTerm = (AppState.classroomSearchTerm || "").toLowerCase().trim();
+        const searchTerm = (AppState.classroomSearchTerm || "")
+          .toLowerCase()
+          .trim();
         const gradeFilter = AppState.classroomGradeFilter || "all";
 
         // Filter classrooms
         const filteredClassrooms = classrooms.filter((c) => {
           // Grade Filter
-          if (gradeFilter === "junior" && !/^ม\.[1-3]/.test(c.classroom)) return false;
-          if (gradeFilter === "senior" && !/^ม\.[4-6]/.test(c.classroom)) return false;
-          if (gradeFilter !== "all" && gradeFilter !== "junior" && gradeFilter !== "senior") {
+          if (gradeFilter === "junior" && !/^ม\.[1-3]/.test(c.classroom))
+            return false;
+          if (gradeFilter === "senior" && !/^ม\.[4-6]/.test(c.classroom))
+            return false;
+          if (
+            gradeFilter !== "all" &&
+            gradeFilter !== "junior" &&
+            gradeFilter !== "senior"
+          ) {
             if (!c.classroom.startsWith(gradeFilter)) return false;
           }
 
           // Search Term
           if (searchTerm) {
-            const areaObj = (AppState.areas || []).find((a) => a.area_id === c.area_id);
+            const areaObj = (AppState.areas || []).find(
+              (a) => a.area_id === c.area_id,
+            );
             const areaName = areaObj ? areaObj.area_name.toLowerCase() : "";
-            const advisorStr = Array.isArray(c.advisors) ? c.advisors.join(" ").toLowerCase() : String(c.advisors).toLowerCase();
+            const advisorStr = Array.isArray(c.advisors)
+              ? c.advisors.join(" ").toLowerCase()
+              : String(c.advisors).toLowerCase();
             return (
               c.classroom.toLowerCase().includes(searchTerm) ||
               c.area_id.toLowerCase().includes(searchTerm) ||
@@ -4315,17 +4624,17 @@
             <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto scrollbar-none py-1">
               <button type="button"
                       onclick="filterClassroomByGrade('all')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${gradeFilter === 'all' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${gradeFilter === "all" ? "bg-emerald-700 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 ทั้งหมด (${classrooms.length})
               </button>
               <button type="button"
                       onclick="filterClassroomByGrade('junior')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${gradeFilter === 'junior' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${gradeFilter === "junior" ? "bg-emerald-700 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 ม.ต้น (ม.1-3)
               </button>
               <button type="button"
                       onclick="filterClassroomByGrade('senior')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${gradeFilter === 'senior' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${gradeFilter === "senior" ? "bg-amber-600 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 ม.ปลาย (ม.4-6)
               </button>
             </div>
@@ -4376,8 +4685,12 @@
                               : "bg-emerald-100 text-emerald-800 border border-emerald-200";
 
                             // Area display
-                            const areaObj = (AppState.areas || []).find((a) => a.area_id === c.area_id);
-                            const areaName = areaObj ? areaObj.area_name : c.area_id;
+                            const areaObj = (AppState.areas || []).find(
+                              (a) => a.area_id === c.area_id,
+                            );
+                            const areaName = areaObj
+                              ? areaObj.area_name
+                              : c.area_id;
 
                             // Advisors chips
                             let advisorsList = [];
@@ -4487,7 +4800,9 @@
         const titleEl = document.getElementById("classroomModalTitle");
         const subtitleEl = document.getElementById("classroomModalSubtitle");
         const modeInput = document.getElementById("classroomModalMode");
-        const oldClassInput = document.getElementById("classroomModalOldClassroom");
+        const oldClassInput = document.getElementById(
+          "classroomModalOldClassroom",
+        );
         const gradeSelect = document.getElementById("classroomGradeSelect");
         const roomSelect = document.getElementById("classroomRoomSelect");
         const slotsContainer = document.getElementById("advisorSlotsContainer");
@@ -4498,16 +4813,20 @@
 
         if (mode === "create") {
           titleEl.textContent = "เพิ่มห้องเรียนใหม่";
-          subtitleEl.textContent = "กำหนดระดับชั้น เขตพื้นที่รับผิดชอบ และครูที่ปรึกษา";
+          subtitleEl.textContent =
+            "กำหนดระดับชั้น เขตพื้นที่รับผิดชอบ และครูที่ปรึกษา";
           gradeSelect.value = "ม.1";
           roomSelect.value = "1";
           populateClassroomAreaDropdown("", "");
           addAdvisorSlot("");
         } else {
           titleEl.textContent = `แก้ไขข้อมูลห้องเรียน (${targetClassroom})`;
-          subtitleEl.textContent = "ปรับปรุงเขตพื้นที่และครูที่ปรึกษาประจำห้องเรียน";
+          subtitleEl.textContent =
+            "ปรับปรุงเขตพื้นที่และครูที่ปรึกษาประจำห้องเรียน";
 
-          const found = (AppState.classrooms || []).find((c) => c.classroom === targetClassroom);
+          const found = (AppState.classrooms || []).find(
+            (c) => c.classroom === targetClassroom,
+          );
           if (found) {
             const parts = found.classroom.split("/");
             if (parts.length === 2) {
@@ -4518,7 +4837,8 @@
 
             let advList = [];
             if (Array.isArray(found.advisors)) advList = found.advisors;
-            else if (typeof found.advisors === "string") advList = parseJsonOrRaw(found.advisors);
+            else if (typeof found.advisors === "string")
+              advList = parseJsonOrRaw(found.advisors);
 
             if (advList.length > 0) {
               advList.forEach((adv) => addAdvisorSlot(adv));
@@ -4548,21 +4868,30 @@
         }, 300);
       }
 
-      function populateClassroomAreaDropdown(selectedAreaId = "", currentRoom = "") {
+      function populateClassroomAreaDropdown(
+        selectedAreaId = "",
+        currentRoom = "",
+      ) {
         const areaSelect = document.getElementById("classroomAreaSelect");
         if (!areaSelect) return;
 
-        areaSelect.innerHTML = '<option value="">-- กรุณาเลือกเขตพื้นที่รับผิดชอบ --</option>';
+        areaSelect.innerHTML =
+          '<option value="">-- กรุณาเลือกเขตพื้นที่รับผิดชอบ --</option>';
 
         const areas = AppState.areas || [];
         areas.forEach((a) => {
           // ตรวจสอบว่าเขตนี้ผูกกับห้องอื่นอยู่หรือไม่
-          const assignedRoomObj = (AppState.classrooms || []).find((c) => c.area_id === a.area_id);
-          const isAssignedToOther = assignedRoomObj && assignedRoomObj.classroom !== currentRoom;
+          const assignedRoomObj = (AppState.classrooms || []).find(
+            (c) => c.area_id === a.area_id,
+          );
+          const isAssignedToOther =
+            assignedRoomObj && assignedRoomObj.classroom !== currentRoom;
 
           const opt = document.createElement("option");
           opt.value = a.area_id;
-          opt.dataset.assignedRoom = isAssignedToOther ? assignedRoomObj.classroom : "";
+          opt.dataset.assignedRoom = isAssignedToOther
+            ? assignedRoomObj.classroom
+            : "";
 
           if (isAssignedToOther) {
             opt.textContent = `[${a.area_id}] ${a.area_name} (⚠️ ผูกกับห้อง ${assignedRoomObj.classroom} แล้ว)`;
@@ -4674,7 +5003,9 @@
 
       function handleClassroomInputChange() {
         const mode = document.getElementById("classroomModalMode").value;
-        const oldClassroom = document.getElementById("classroomModalOldClassroom").value;
+        const oldClassroom = document.getElementById(
+          "classroomModalOldClassroom",
+        ).value;
         const grade = document.getElementById("classroomGradeSelect").value;
         const room = document.getElementById("classroomRoomSelect").value;
         const alertEl = document.getElementById("classroomDuplicateAlert");
@@ -4684,16 +5015,21 @@
         let isDuplicate = false;
 
         if (mode === "create") {
-          isDuplicate = (AppState.classrooms || []).some((c) => c.classroom === constructed);
+          isDuplicate = (AppState.classrooms || []).some(
+            (c) => c.classroom === constructed,
+          );
         } else {
           if (constructed !== oldClassroom) {
-            isDuplicate = (AppState.classrooms || []).some((c) => c.classroom === constructed);
+            isDuplicate = (AppState.classrooms || []).some(
+              (c) => c.classroom === constructed,
+            );
           }
         }
 
         if (isDuplicate) {
           if (alertEl) alertEl.classList.remove("hidden");
-          if (textEl) textEl.textContent = `ห้องเรียน ${constructed} มีอยู่ในระบบแล้ว (ห้ามซ้ำกัน)`;
+          if (textEl)
+            textEl.textContent = `ห้องเรียน ${constructed} มีอยู่ในระบบแล้ว (ห้ามซ้ำกัน)`;
         } else {
           if (alertEl) alertEl.classList.add("hidden");
         }
@@ -4706,11 +5042,14 @@
         if (!areaSelect) return;
 
         const selectedOpt = areaSelect.options[areaSelect.selectedIndex];
-        const assignedRoom = selectedOpt ? selectedOpt.dataset.assignedRoom : "";
+        const assignedRoom = selectedOpt
+          ? selectedOpt.dataset.assignedRoom
+          : "";
 
         if (assignedRoom) {
           if (alertEl) alertEl.classList.remove("hidden");
-          if (textEl) textEl.textContent = `เขตพื้นที่นี้ถูกผูกไว้กับห้อง ${assignedRoom} แล้ว (ห้ามซ้ำกัน)`;
+          if (textEl)
+            textEl.textContent = `เขตพื้นที่นี้ถูกผูกไว้กับห้อง ${assignedRoom} แล้ว (ห้ามซ้ำกัน)`;
         } else {
           if (alertEl) alertEl.classList.add("hidden");
         }
@@ -4719,7 +5058,9 @@
       async function submitClassroomModal() {
         try {
           const mode = document.getElementById("classroomModalMode").value;
-          const oldClassroom = document.getElementById("classroomModalOldClassroom").value;
+          const oldClassroom = document.getElementById(
+            "classroomModalOldClassroom",
+          ).value;
           const grade = document.getElementById("classroomGradeSelect").value;
           const room = document.getElementById("classroomRoomSelect").value;
           const areaSelect = document.getElementById("classroomAreaSelect");
@@ -4729,29 +5070,52 @@
           const classroom = `${grade}/${room}`;
 
           // Validate Classroom Duplicate
-          if (mode === "create" && (AppState.classrooms || []).some((c) => c.classroom === classroom)) {
-            swalShowWarning("ห้องเรียนซ้ำ", `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว`);
+          if (
+            mode === "create" &&
+            (AppState.classrooms || []).some((c) => c.classroom === classroom)
+          ) {
+            swalShowWarning(
+              "ห้องเรียนซ้ำ",
+              `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว`,
+            );
             return;
           }
-          if (mode === "update" && classroom !== oldClassroom && (AppState.classrooms || []).some((c) => c.classroom === classroom)) {
-            swalShowWarning("ห้องเรียนซ้ำ", `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว`);
+          if (
+            mode === "update" &&
+            classroom !== oldClassroom &&
+            (AppState.classrooms || []).some((c) => c.classroom === classroom)
+          ) {
+            swalShowWarning(
+              "ห้องเรียนซ้ำ",
+              `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว`,
+            );
             return;
           }
 
           // Validate Area
           if (!areaId) {
-            swalShowWarning("กรุณาเลือกเขตพื้นที่", "ต้องระบุเขตพื้นที่รับผิดชอบประจำห้องเรียน");
+            swalShowWarning(
+              "กรุณาเลือกเขตพื้นที่",
+              "ต้องระบุเขตพื้นที่รับผิดชอบประจำห้องเรียน",
+            );
             return;
           }
           const selectedOpt = areaSelect.options[areaSelect.selectedIndex];
-          const assignedRoom = selectedOpt ? selectedOpt.dataset.assignedRoom : "";
+          const assignedRoom = selectedOpt
+            ? selectedOpt.dataset.assignedRoom
+            : "";
           if (assignedRoom && assignedRoom !== oldClassroom) {
-            swalShowWarning("เขตพื้นที่ซ้ำ", `เขตพื้นที่นี้ถูกผูกไว้กับห้อง ${assignedRoom} แล้ว (ห้ามซ้ำกัน)`);
+            swalShowWarning(
+              "เขตพื้นที่ซ้ำ",
+              `เขตพื้นที่นี้ถูกผูกไว้กับห้อง ${assignedRoom} แล้ว (ห้ามซ้ำกัน)`,
+            );
             return;
           }
 
           // Validate Advisors
-          const advisorSelects = container ? container.querySelectorAll(".advisor-select") : [];
+          const advisorSelects = container
+            ? container.querySelectorAll(".advisor-select")
+            : [];
           const advisors = [];
           advisorSelects.forEach((sel) => {
             const val = sel.value.trim();
@@ -4759,18 +5123,27 @@
           });
 
           if (advisors.length < 1 || advisors.length > 3) {
-            swalShowWarning("ครูที่ปรึกษาไม่ถูกต้อง", "ต้องมีครูที่ปรึกษาอย่างน้อย 1 ท่าน และไม่เกิน 3 ท่าน");
+            swalShowWarning(
+              "ครูที่ปรึกษาไม่ถูกต้อง",
+              "ต้องมีครูที่ปรึกษาอย่างน้อย 1 ท่าน และไม่เกิน 3 ท่าน",
+            );
             return;
           }
 
           const uniqueAdvisors = new Set(advisors);
           if (uniqueAdvisors.size !== advisors.length) {
-            swalShowWarning("ครูที่ปรึกษาซ้ำกัน", "ไม่สามารถเลือกครูที่ปรึกษาท่านเดียวกันซ้ำในห้องนี้ได้");
+            swalShowWarning(
+              "ครูที่ปรึกษาซ้ำกัน",
+              "ไม่สามารถเลือกครูที่ปรึกษาท่านเดียวกันซ้ำในห้องนี้ได้",
+            );
             return;
           }
 
           const confirmResult = await swalCustom().fire({
-            title: mode === "create" ? `ยืนยันเพิ่มห้องเรียน ${classroom}?` : `ยืนยันแก้ไขห้องเรียน ${classroom}?`,
+            title:
+              mode === "create"
+                ? `ยืนยันเพิ่มห้องเรียน ${classroom}?`
+                : `ยืนยันแก้ไขห้องเรียน ${classroom}?`,
             html: `
               <div class="text-left text-sm space-y-1.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <div>🏫 <b>ห้องเรียน:</b> ${classroom}</div>
@@ -4786,7 +5159,10 @@
 
           if (!confirmResult.isConfirmed) return;
 
-          swalShowLoading("กำลังบันทึกข้อมูล...", "ระบบกำลังอัปเดตข้อมูลห้องเรียนลงฐานข้อมูล");
+          swalShowLoading(
+            "กำลังบันทึกข้อมูล...",
+            "ระบบกำลังอัปเดตข้อมูลห้องเรียนลงฐานข้อมูล",
+          );
 
           const payload = {
             action: "manageClassroom",
@@ -4813,9 +5189,15 @@
           if (mode === "create") {
             AppState.classrooms.push({ classroom, area_id: areaId, advisors });
           } else {
-            const idx = AppState.classrooms.findIndex((c) => c.classroom === oldClassroom);
+            const idx = AppState.classrooms.findIndex(
+              (c) => c.classroom === oldClassroom,
+            );
             if (idx !== -1) {
-              AppState.classrooms[idx] = { classroom, area_id: areaId, advisors };
+              AppState.classrooms[idx] = {
+                classroom,
+                area_id: areaId,
+                advisors,
+              };
             }
           }
 
@@ -4824,8 +5206,11 @@
           renderTodaySummary();
           await swalShowSuccess("บันทึกข้อมูลห้องเรียนสำเร็จ!", "", 1200);
 
-          const subContainer = document.getElementById("subtabContentContainer");
-          if (subContainer) subContainer.innerHTML = renderClassroomSettingsSubTab();
+          const subContainer = document.getElementById(
+            "subtabContentContainer",
+          );
+          if (subContainer)
+            subContainer.innerHTML = renderClassroomSettingsSubTab();
         } catch (err) {
           console.error("Error saving classroom:", err);
           swalShowError("บันทึกไม่สำเร็จ", err.message);
@@ -4866,13 +5251,18 @@
             }
           }
 
-          AppState.classrooms = (AppState.classrooms || []).filter((c) => c.classroom !== classroom);
+          AppState.classrooms = (AppState.classrooms || []).filter(
+            (c) => c.classroom !== classroom,
+          );
           initInspectionForms();
           renderTodaySummary();
           await swalShowSuccess("ลบห้องเรียนเรียบร้อยแล้ว", "", 1200);
 
-          const subContainer = document.getElementById("subtabContentContainer");
-          if (subContainer) subContainer.innerHTML = renderClassroomSettingsSubTab();
+          const subContainer = document.getElementById(
+            "subtabContentContainer",
+          );
+          if (subContainer)
+            subContainer.innerHTML = renderClassroomSettingsSubTab();
         } catch (err) {
           console.error("Error deleting classroom:", err);
           swalShowError("ลบไม่สำเร็จ", err.message);
@@ -4897,8 +5287,12 @@
           if (statusFilter === "inactive" && isActive) return false;
 
           if (searchTerm) {
-            const assignedRoomObj = (AppState.classrooms || []).find((c) => c.area_id === a.area_id);
-            const assignedRoom = assignedRoomObj ? assignedRoomObj.classroom.toLowerCase() : "";
+            const assignedRoomObj = (AppState.classrooms || []).find(
+              (c) => c.area_id === a.area_id,
+            );
+            const assignedRoom = assignedRoomObj
+              ? assignedRoomObj.classroom.toLowerCase()
+              : "";
             return (
               a.area_id.toLowerCase().includes(searchTerm) ||
               a.area_name.toLowerCase().includes(searchTerm) ||
@@ -4929,17 +5323,17 @@
             <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto scrollbar-none py-1">
               <button type="button"
                       onclick="filterAreaByStatus('all')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${statusFilter === 'all' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${statusFilter === "all" ? "bg-amber-600 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 ทั้งหมด (${areas.length})
               </button>
               <button type="button"
                       onclick="filterAreaByStatus('active')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${statusFilter === 'active' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${statusFilter === "active" ? "bg-emerald-600 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 เปิดใช้งาน
               </button>
               <button type="button"
                       onclick="filterAreaByStatus('inactive')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${statusFilter === 'inactive' ? 'bg-slate-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${statusFilter === "inactive" ? "bg-slate-600 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 ปิดใช้งาน
               </button>
             </div>
@@ -4986,8 +5380,11 @@
                   `
                       : filteredAreas
                           .map((a) => {
-                            const isActive = String(a.is_active).toUpperCase() !== "FALSE";
-                            const assignedRoomObj = (AppState.classrooms || []).find((c) => c.area_id === a.area_id);
+                            const isActive =
+                              String(a.is_active).toUpperCase() !== "FALSE";
+                            const assignedRoomObj = (
+                              AppState.classrooms || []
+                            ).find((c) => c.area_id === a.area_id);
 
                             return `
                       <tr class="hover:bg-slate-50/80 transition duration-150">
@@ -5100,12 +5497,15 @@
         } else {
           titleEl.textContent = `แก้ไขเขตพื้นที่ (${targetAreaId})`;
           subtitleEl.textContent = "ปรับปรุงชื่อ รายละเอียด และสถานะการใช้งาน";
-          const found = (AppState.areas || []).find((a) => a.area_id === targetAreaId);
+          const found = (AppState.areas || []).find(
+            (a) => a.area_id === targetAreaId,
+          );
           if (found) {
             idInput.value = found.area_id;
             nameInput.value = found.area_name || "";
             descInput.value = found.area_description || "";
-            activeInput.checked = String(found.is_active).toUpperCase() !== "FALSE";
+            activeInput.checked =
+              String(found.is_active).toUpperCase() !== "FALSE";
           }
         }
 
@@ -5131,17 +5531,29 @@
         try {
           const mode = document.getElementById("areaModalMode").value;
           const areaId = document.getElementById("areaIdInput").value.trim();
-          const areaName = document.getElementById("areaNameInput").value.trim();
-          const areaDesc = document.getElementById("areaDescriptionInput").value.trim();
-          const isActive = document.getElementById("areaIsActiveInput").checked ? "TRUE" : "FALSE";
+          const areaName = document
+            .getElementById("areaNameInput")
+            .value.trim();
+          const areaDesc = document
+            .getElementById("areaDescriptionInput")
+            .value.trim();
+          const isActive = document.getElementById("areaIsActiveInput").checked
+            ? "TRUE"
+            : "FALSE";
 
           if (!areaName) {
-            swalShowWarning("กรุณาระบุชื่อเขตพื้นที่", "ต้องระบุชื่อเขตพื้นที่รับผิดชอบก่อนบันทึก");
+            swalShowWarning(
+              "กรุณาระบุชื่อเขตพื้นที่",
+              "ต้องระบุชื่อเขตพื้นที่รับผิดชอบก่อนบันทึก",
+            );
             return;
           }
 
           const confirmResult = await swalCustom().fire({
-            title: mode === "create" ? `ยืนยันเพิ่มเขตพื้นที่ [${areaId}]?` : `ยืนยันแก้ไขเขตพื้นที่ [${areaId}]?`,
+            title:
+              mode === "create"
+                ? `ยืนยันเพิ่มเขตพื้นที่ [${areaId}]?`
+                : `ยืนยันแก้ไขเขตพื้นที่ [${areaId}]?`,
             html: `<div class="text-left text-sm p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                      <div>📍 <b>รหัสเขต:</b> ${areaId}</div>
                      <div>🏷️ <b>ชื่อเขต:</b> ${areaName}</div>
@@ -5181,11 +5593,21 @@
 
           // Update local AppState
           if (mode === "create") {
-            AppState.areas.push({ area_id: areaId, area_name: areaName, area_description: areaDesc, is_active: isActive });
+            AppState.areas.push({
+              area_id: areaId,
+              area_name: areaName,
+              area_description: areaDesc,
+              is_active: isActive,
+            });
           } else {
             const idx = AppState.areas.findIndex((a) => a.area_id === areaId);
             if (idx !== -1) {
-              AppState.areas[idx] = { area_id: areaId, area_name: areaName, area_description: areaDesc, is_active: isActive };
+              AppState.areas[idx] = {
+                area_id: areaId,
+                area_name: areaName,
+                area_description: areaDesc,
+                is_active: isActive,
+              };
             }
           }
 
@@ -5193,7 +5615,9 @@
           initInspectionForms();
           await swalShowSuccess("บันทึกข้อมูลเขตพื้นที่สำเร็จ!", "", 1200);
 
-          const subContainer = document.getElementById("subtabContentContainer");
+          const subContainer = document.getElementById(
+            "subtabContentContainer",
+          );
           if (subContainer) subContainer.innerHTML = renderAreaSettingsSubTab();
         } catch (err) {
           console.error("Error saving area:", err);
@@ -5203,10 +5627,15 @@
 
       async function toggleAreaStatus(areaId) {
         try {
-          const areaObj = (AppState.areas || []).find((a) => a.area_id === areaId);
+          const areaObj = (AppState.areas || []).find(
+            (a) => a.area_id === areaId,
+          );
           if (!areaObj) return;
 
-          const newStatus = String(areaObj.is_active).toUpperCase() === "FALSE" ? "TRUE" : "FALSE";
+          const newStatus =
+            String(areaObj.is_active).toUpperCase() === "FALSE"
+              ? "TRUE"
+              : "FALSE";
           areaObj.is_active = newStatus;
 
           const payload = {
@@ -5235,7 +5664,9 @@
       async function confirmDeleteArea(areaId) {
         try {
           // Safety Check: Classroom linkage
-          const linkedClassroom = (AppState.classrooms || []).find((c) => c.area_id === areaId);
+          const linkedClassroom = (AppState.classrooms || []).find(
+            (c) => c.area_id === areaId,
+          );
           if (linkedClassroom) {
             swalShowError(
               "ไม่สามารถลบเขตพื้นที่นี้ได้!",
@@ -5276,11 +5707,15 @@
             }
           }
 
-          AppState.areas = (AppState.areas || []).filter((a) => a.area_id !== areaId);
+          AppState.areas = (AppState.areas || []).filter(
+            (a) => a.area_id !== areaId,
+          );
           initInspectionForms();
           await swalShowSuccess("ลบเขตพื้นที่เรียบร้อยแล้ว", "", 1200);
 
-          const subContainer = document.getElementById("subtabContentContainer");
+          const subContainer = document.getElementById(
+            "subtabContentContainer",
+          );
           if (subContainer) subContainer.innerHTML = renderAreaSettingsSubTab();
         } catch (err) {
           console.error("Error deleting area:", err);
@@ -5298,7 +5733,9 @@
       function renderChecklistSettingsSubTab() {
         const checklists = AppState.checklists || [];
         const typeFilter = AppState.checklistTypeFilter || "all";
-        const searchTerm = (AppState.checklistSearchTerm || "").toLowerCase().trim();
+        const searchTerm = (AppState.checklistSearchTerm || "")
+          .toLowerCase()
+          .trim();
 
         const filteredChecklists = checklists.filter((chk) => {
           const isRoom = String(chk.checklist_id).startsWith("room");
@@ -5335,17 +5772,17 @@
             <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto scrollbar-none py-1">
               <button type="button"
                       onclick="filterChecklistByType('all')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${typeFilter === 'all' ? 'bg-cyan-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${typeFilter === "all" ? "bg-cyan-700 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 ทั้งหมด (${checklists.length})
               </button>
               <button type="button"
                       onclick="filterChecklistByType('room')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${typeFilter === 'room' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${typeFilter === "room" ? "bg-emerald-600 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 🏫 ห้องเรียน (${checklists.filter((c) => c.checklist_id.startsWith("room")).length})
               </button>
               <button type="button"
                       onclick="filterChecklistByType('area')"
-                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${typeFilter === 'area' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${typeFilter === "area" ? "bg-amber-600 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}">
                 📍 เขตพื้นที่ (${checklists.filter((c) => c.checklist_id.startsWith("area")).length})
               </button>
             </div>
@@ -5393,8 +5830,11 @@
                   `
                       : filteredChecklists
                           .map((chk) => {
-                            const isRoom = String(chk.checklist_id).startsWith("room");
-                            const isActive = String(chk.is_active).toUpperCase() !== "FALSE";
+                            const isRoom = String(chk.checklist_id).startsWith(
+                              "room",
+                            );
+                            const isActive =
+                              String(chk.is_active).toUpperCase() !== "FALSE";
 
                             return `
                       <tr class="hover:bg-slate-50/80 transition duration-150">
@@ -5503,10 +5943,14 @@
 
         if (mode === "create") {
           titleEl.textContent = "เพิ่มเกณฑ์การประเมินใหม่";
-          subtitleEl.textContent = "เลือกระหว่างเกณฑ์ตรวจห้องเรียน หรือเขตพื้นที่รับผิดชอบ";
-          const defaultType = AppState.checklistTypeFilter === "area" ? "area" : "room";
+          subtitleEl.textContent =
+            "เลือกระหว่างเกณฑ์ตรวจห้องเรียน หรือเขตพื้นที่รับผิดชอบ";
+          const defaultType =
+            AppState.checklistTypeFilter === "area" ? "area" : "room";
 
-          const radio = document.querySelector(`input[name="checklistTypeRadio"][value="${defaultType}"]`);
+          const radio = document.querySelector(
+            `input[name="checklistTypeRadio"][value="${defaultType}"]`,
+          );
           if (radio) radio.checked = true;
 
           const nextId = getNextChecklistId(defaultType);
@@ -5517,28 +5961,37 @@
           activeInput.checked = true;
 
           if (radioGroup) {
-            radioGroup.querySelectorAll("input").forEach((r) => (r.disabled = false));
+            radioGroup
+              .querySelectorAll("input")
+              .forEach((r) => (r.disabled = false));
             radioGroup.classList.remove("opacity-50", "pointer-events-none");
           }
         } else {
           titleEl.textContent = `แก้ไขเกณฑ์การประเมิน (${targetChecklistId})`;
           subtitleEl.textContent = "ปรับปรุงชื่อ รายละเอียด คะแนนเต็ม และสถานะ";
 
-          const found = (AppState.checklists || []).find((c) => c.checklist_id === targetChecklistId);
+          const found = (AppState.checklists || []).find(
+            (c) => c.checklist_id === targetChecklistId,
+          );
           if (found) {
             const isRoom = String(found.checklist_id).startsWith("room");
             const type = isRoom ? "room" : "area";
-            const radio = document.querySelector(`input[name="checklistTypeRadio"][value="${type}"]`);
+            const radio = document.querySelector(
+              `input[name="checklistTypeRadio"][value="${type}"]`,
+            );
             if (radio) radio.checked = true;
 
             idInput.value = found.checklist_id;
             nameInput.value = found.checklist_name || "";
             detailInput.value = found.checklist_detail || "";
             scoreInput.value = found.max_score || "3";
-            activeInput.checked = String(found.is_active).toUpperCase() !== "FALSE";
+            activeInput.checked =
+              String(found.is_active).toUpperCase() !== "FALSE";
 
             if (radioGroup) {
-              radioGroup.querySelectorAll("input").forEach((r) => (r.disabled = true));
+              radioGroup
+                .querySelectorAll("input")
+                .forEach((r) => (r.disabled = true));
               radioGroup.classList.add("opacity-50", "pointer-events-none");
             }
           }
@@ -5573,27 +6026,54 @@
       async function submitChecklistModal() {
         try {
           const mode = document.getElementById("checklistModalMode").value;
-          const checklistId = document.getElementById("checklistIdInput").value.trim();
-          const checklistName = document.getElementById("checklistNameInput").value.trim();
-          const checklistDetail = document.getElementById("checklistDetailInput").value.trim();
-          const maxScoreVal = parseInt(document.getElementById("checklistMaxScoreInput").value, 10);
-          const isActive = document.getElementById("checklistIsActiveInput").checked ? "TRUE" : "FALSE";
+          const checklistId = document
+            .getElementById("checklistIdInput")
+            .value.trim();
+          const checklistName = document
+            .getElementById("checklistNameInput")
+            .value.trim();
+          const checklistDetail = document
+            .getElementById("checklistDetailInput")
+            .value.trim();
+          const maxScoreVal = parseInt(
+            document.getElementById("checklistMaxScoreInput").value,
+            10,
+          );
+          const isActive = document.getElementById("checklistIsActiveInput")
+            .checked
+            ? "TRUE"
+            : "FALSE";
 
-          const radioChecked = document.querySelector('input[name="checklistTypeRadio"]:checked');
-          const type = radioChecked ? radioChecked.value : (checklistId.startsWith("room") ? "room" : "area");
+          const radioChecked = document.querySelector(
+            'input[name="checklistTypeRadio"]:checked',
+          );
+          const type = radioChecked
+            ? radioChecked.value
+            : checklistId.startsWith("room")
+              ? "room"
+              : "area";
 
           if (!checklistName) {
-            swalShowWarning("กรุณาระบุชื่อเกณฑ์การประเมิน", "ต้องระบุชื่อเกณฑ์ก่อนทำการบันทึก");
+            swalShowWarning(
+              "กรุณาระบุชื่อเกณฑ์การประเมิน",
+              "ต้องระบุชื่อเกณฑ์ก่อนทำการบันทึก",
+            );
             return;
           }
 
           if (isNaN(maxScoreVal) || maxScoreVal < 2 || maxScoreVal > 10) {
-            swalShowWarning("คะแนนเต็มไม่ถูกต้อง", "คะแนนเต็มต้องเป็นจำนวนเต็มตั้งแต่ 2 ถึง 10 คะแนนเท่านั้น");
+            swalShowWarning(
+              "คะแนนเต็มไม่ถูกต้อง",
+              "คะแนนเต็มต้องเป็นจำนวนเต็มตั้งแต่ 2 ถึง 10 คะแนนเท่านั้น",
+            );
             return;
           }
 
           const confirmResult = await swalCustom().fire({
-            title: mode === "create" ? `ยืนยันเพิ่มเกณฑ์ [${checklistId}]?` : `ยืนยันแก้ไขเกณฑ์ [${checklistId}]?`,
+            title:
+              mode === "create"
+                ? `ยืนยันเพิ่มเกณฑ์ [${checklistId}]?`
+                : `ยืนยันแก้ไขเกณฑ์ [${checklistId}]?`,
             html: `<div class="text-left text-sm p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                      <div>📋 <b>รหัสเกณฑ์:</b> ${checklistId}</div>
                      <div>🏷️ <b>ชื่อเกณฑ์:</b> ${checklistName}</div>
@@ -5643,7 +6123,9 @@
               is_active: isActive,
             });
           } else {
-            const idx = AppState.checklists.findIndex((c) => c.checklist_id === checklistId);
+            const idx = AppState.checklists.findIndex(
+              (c) => c.checklist_id === checklistId,
+            );
             if (idx !== -1) {
               AppState.checklists[idx] = {
                 checklist_id: checklistId,
@@ -5659,8 +6141,11 @@
           initInspectionForms();
           await swalShowSuccess("บันทึกข้อมูลเกณฑ์ประเมินสำเร็จ!", "", 1200);
 
-          const subContainer = document.getElementById("subtabContentContainer");
-          if (subContainer) subContainer.innerHTML = renderChecklistSettingsSubTab();
+          const subContainer = document.getElementById(
+            "subtabContentContainer",
+          );
+          if (subContainer)
+            subContainer.innerHTML = renderChecklistSettingsSubTab();
         } catch (err) {
           console.error("Error saving checklist:", err);
           swalShowError("บันทึกไม่สำเร็จ", err.message);
@@ -5669,10 +6154,15 @@
 
       async function toggleChecklistStatus(checklistId) {
         try {
-          const chkObj = (AppState.checklists || []).find((c) => c.checklist_id === checklistId);
+          const chkObj = (AppState.checklists || []).find(
+            (c) => c.checklist_id === checklistId,
+          );
           if (!chkObj) return;
 
-          const newStatus = String(chkObj.is_active).toUpperCase() === "FALSE" ? "TRUE" : "FALSE";
+          const newStatus =
+            String(chkObj.is_active).toUpperCase() === "FALSE"
+              ? "TRUE"
+              : "FALSE";
           chkObj.is_active = newStatus;
 
           const payload = {
@@ -5733,12 +6223,17 @@
             }
           }
 
-          AppState.checklists = (AppState.checklists || []).filter((c) => c.checklist_id !== checklistId);
+          AppState.checklists = (AppState.checklists || []).filter(
+            (c) => c.checklist_id !== checklistId,
+          );
           initInspectionForms();
           await swalShowSuccess("ลบเกณฑ์ประเมินเรียบร้อยแล้ว", "", 1200);
 
-          const subContainer = document.getElementById("subtabContentContainer");
-          if (subContainer) subContainer.innerHTML = renderChecklistSettingsSubTab();
+          const subContainer = document.getElementById(
+            "subtabContentContainer",
+          );
+          if (subContainer)
+            subContainer.innerHTML = renderChecklistSettingsSubTab();
         } catch (err) {
           console.error("Error deleting checklist:", err);
           swalShowError("ลบไม่สำเร็จ", err.message);
