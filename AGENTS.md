@@ -15,7 +15,7 @@
 graph TD
     User([ผู้ใช้งาน / คุณครู / ผู้ตรวจ]) <-->|HTTPS / UI Interactivity| Vercel[Frontend SPA on Vercel<br/>index.html]
     Vercel <-->|REST API JSON POST/GET| GAS[Backend Web App on GAS<br/>Code.gs]
-    GAS <-->|Google Sheets API v4| Sheets[(Google Sheets Database<br/>6 ตารางข้อมูล)]
+    GAS <-->|Google Sheets API v4| Sheets[(Google Sheets Database<br/>7 ตารางข้อมูล)]
     GAS <-->|Google Drive API| Drive[(Google Drive Folder<br/>จัดเก็บรูปภาพ)]
 ```
 
@@ -80,7 +80,11 @@ PCSK-CheckClassroom V3/
   * รหัสขึ้นต้นด้วย `room...` = รายการตรวจห้องเรียน
   * รหัสขึ้นต้นด้วย `area...` = รายการตรวจเขตพื้นที่
 
-### 4.6 `LOG_inspections` (บันทึกประวัติการตรวจ)
+### 4.6 `DB_teachers` (ฐานข้อมูลรายชื่อครู)
+* **Headers:** `teacherName`
+* **ตัวอย่าง:** `ครูผกามาศ เสือคล้าย`
+
+### 4.7 `LOG_inspections` (บันทึกประวัติการตรวจ)
 * **Headers:** `record_id` | `timestamp` | `date_str` | `type` | `target_id` | `target_name` | `inspector_name` | `scores_json` | `total_score` | `max_score` | `percentage` | `comment` | `image_urls_json` | `term`
 
 ---

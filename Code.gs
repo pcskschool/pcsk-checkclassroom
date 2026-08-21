@@ -84,6 +84,24 @@ function setupSystemSheets() {
       ]
     },
     {
+      name: 'DB_teachers',
+      headers: ['teacherName'],
+      defaultData: [
+        ['ครูผกามาศ เสือคล้าย'],
+        ['ครูอุเทน หมื่นสุวรรณ์'],
+        ['ครูสมควร รักเรียน'],
+        ['ครูวิภาดา ใจเพียร'],
+        ['ครูอนุชา เก่งกล้า'],
+        ['ครูสุดา ประเสริฐ'],
+        ['ครูธนากร กิตติคุณ'],
+        ['ครูนฤมล สายทอง'],
+        ['ครูพิเชษฐ์ ปรีชา'],
+        ['ครูอรทัย ทองใบ'],
+        ['ครูชัยวัฒน์ ดวงดี'],
+        ['ครูรัตนา สุขสม']
+      ]
+    },
+    {
       name: 'LOG_inspections',
       headers: [
         'record_id',
@@ -135,7 +153,7 @@ function setupSystemSheets() {
     }
   });
 
-  Logger.log('✅ ตั้งค่าชีตระบบทั้ง 6 ชีตเรียบร้อยสมบูรณ์');
+  Logger.log('✅ ตั้งค่าชีตระบบทั้ง 7 ชีตเรียบร้อยสมบูรณ์');
   return { status: 'success', message: 'Setup sheets completed successfully' };
 }
 
@@ -266,6 +284,21 @@ function doPost(e) {
       case 'saveInspection':
         return createJsonResponse(handleSaveInspection(payload));
 
+      case 'saveSystemSettings':
+        return createJsonResponse(handleSaveSystemSettings(payload));
+
+      case 'manageClassroom':
+        return createJsonResponse(handleManageClassroom(payload));
+
+      case 'manageArea':
+        return createJsonResponse(handleManageArea(payload));
+
+      case 'manageChecklist':
+        return createJsonResponse(handleManageChecklist(payload));
+
+      case 'manageTeacher':
+        return createJsonResponse(handleManageTeacher(payload));
+
       case 'autoClean':
         return createJsonResponse(autoCleanDriveImages());
 
@@ -312,17 +345,33 @@ function handleGetInitialData() {
   }));
 
   const classrooms = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'DB_classroom!A:C', 0).map(c => ({
-    ...c,
+    classroom: c.classroom,
+    area_id: c.area_id,
     advisors: parseJsonOrRaw(c.advisors)
   }));
 
-  const areas = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'DB_allArea!A:D', 0).filter(
-    a => String(a.is_active).toUpperCase() === 'TRUE'
-  );
+  // ส่งคืนข้อมูลเขตพื้นที่ทั้งหมด (รวม is_active)
+  const areas = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'DB_allArea!A:D', 0).map(a => ({
+    area_id: a.area_id,
+    area_name: a.area_name,
+    area_description: a.area_description || '',
+    is_active: String(a.is_active).toUpperCase() === 'TRUE'
+  }));
 
-  const checklists = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'LIST_allChecklist!A:E', 0).filter(
-    c => String(c.is_active).toUpperCase() === 'TRUE'
-  );
+  // ส่งคืนข้อมูลเกณฑ์การตรวจทั้งหมด (รวม is_active)
+  const checklists = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'LIST_allChecklist!A:E', 0).map(c => ({
+    checklist_id: c.checklist_id,
+    checklist_name: c.checklist_name,
+    checklist_detail: c.checklist_detail || '',
+    max_score: Number(c.max_score || 3),
+    is_active: String(c.is_active).toUpperCase() === 'TRUE'
+  }));
+
+  // ดึงรายชื่อครูจาก DB_teachers
+  const teachersRaw = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'DB_teachers!A:A', 0);
+  const teachers = teachersRaw
+    .map(t => String(t.teacherName || '').trim())
+    .filter(name => name.length > 0);
 
   const todaySummary = handleGetTodaySummary();
 
@@ -334,6 +383,7 @@ function handleGetInitialData() {
       classrooms: classrooms,
       areas: areas,
       checklists: checklists,
+      teachers: teachers,
       todaySummary: todaySummary
     }
   };
@@ -827,3 +877,538 @@ function parseJsonOrRaw(val) {
   }
   return trimmed;
 }
+
+// ==========================================
+// 8. การจัดการการตั้งค่าระบบ (System Settings & Master Data Management)
+// ==========================================
+
+/**
+ * บันทึกการตั้งค่าระบบในชีต SETTING
+ */
+function handleSaveSystemSettings(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('SETTING');
+    if (!sheet) return { status: 'error', message: 'ไม่พบชีต SETTING' };
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return { status: 'error', message: 'ไม่มีข้อมูลในชีต SETTING' };
+
+    const keyIndex = 0; // Column A
+    const valIndex = 1; // Column B
+
+    const updates = {
+      system_announcement: payload.system_announcement !== undefined ? String(payload.system_announcement).trim() : undefined,
+      enable_room_check: payload.enable_room_check !== undefined ? (String(payload.enable_room_check).toUpperCase() === 'TRUE' ? 'TRUE' : 'FALSE') : undefined,
+      enable_area_check: payload.enable_area_check !== undefined ? (String(payload.enable_area_check).toUpperCase() === 'TRUE' ? 'TRUE' : 'FALSE') : undefined,
+      academic_term: payload.academic_term !== undefined ? String(payload.academic_term).trim() : undefined,
+      auto_delete_days: payload.auto_delete_days !== undefined ? String(payload.auto_delete_days).trim() : undefined
+    };
+
+    for (let r = 1; r < data.length; r++) {
+      const key = String(data[r][keyIndex]).trim();
+      if (updates[key] !== undefined) {
+        sheet.getRange(r + 1, valIndex + 1).setValue(updates[key]);
+      }
+    }
+
+    return { status: 'success', message: 'บันทึกการตั้งค่าระบบสำเร็จ' };
+  } catch (error) {
+    return { status: 'error', message: 'เกิดข้อผิดพลาดในการบันทึกการตั้งค่า: ' + error.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * จัดการข้อมูลห้องเรียน (DB_classroom) : create, update, delete
+ */
+function handleManageClassroom(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('DB_classroom');
+    if (!sheet) return { status: 'error', message: 'ไม่พบชีต DB_classroom' };
+
+    const mode = payload.mode || 'create'; // 'create' | 'update' | 'delete'
+    const classroom = String(payload.classroom || '').trim();
+    const oldClassroom = String(payload.old_classroom || classroom).trim();
+    const areaId = String(payload.area_id || '').trim();
+    let advisors = payload.advisors || [];
+
+    if (typeof advisors === 'string') {
+      advisors = parseJsonOrRaw(advisors);
+    }
+    if (!Array.isArray(advisors)) {
+      advisors = [String(advisors)];
+    }
+    advisors = advisors.map(a => String(a).trim()).filter(a => a.length > 0);
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).trim().toLowerCase());
+    const classCol = headers.indexOf('classroom');
+    const areaCol = headers.indexOf('area_id');
+    const advCol = headers.indexOf('advisors');
+
+    if (classCol === -1 || areaCol === -1 || advCol === -1) {
+      return { status: 'error', message: 'หัวตาราง DB_classroom ไม่ถูกต้อง' };
+    }
+
+    // Validation for create/update
+    if (mode === 'create' || mode === 'update') {
+      // 1. ตรวจสอบรูปแบบห้องเรียน ม.x/y (x: 1-6, y: 1-15)
+      const roomRegex = /^ม\.[1-6]\/(1[0-5]|[1-9])$/;
+      if (!roomRegex.test(classroom)) {
+        return {
+          status: 'error',
+          message: 'รูปแบบห้องเรียนไม่ถูกต้อง ต้องอยู่ในรูปแบบ ม.x/y เช่น ม.1/1 ถึง ม.6/15'
+        };
+      }
+
+      // 2. ตรวจสอบครูที่ปรึกษา (1 - 3 คน)
+      if (advisors.length < 1 || advisors.length > 3) {
+        return {
+          status: 'error',
+          message: 'ครูที่ปรึกษาต้องมีอย่างน้อย 1 คน และไม่เกิน 3 คน'
+        };
+      }
+
+      // 3. ตรวจสอบว่า area_id ถูกระบุหรือไม่
+      if (!areaId) {
+        return { status: 'error', message: 'กรุณาเลือกเขตพื้นที่รับผิดชอบ' };
+      }
+
+      // 4. ตรวจสอบความซ้ำซ้อนภายในชีต (classroom และ area_id ห้ามซ้ำ)
+      for (let r = 1; r < data.length; r++) {
+        const rowClass = String(data[r][classCol]).trim();
+        const rowArea = String(data[r][areaCol]).trim();
+
+        // กรณี Create: ห้ามซ้ำกับแถวใดๆ
+        if (mode === 'create') {
+          if (rowClass === classroom) {
+            return { status: 'error', message: `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว` };
+          }
+          if (rowArea === areaId) {
+            return { status: 'error', message: `เขตพื้นที่ ${areaId} ถูกผูกไว้กับห้อง ${rowClass} แล้ว (ห้ามซ้ำกัน)` };
+          }
+        }
+
+        // กรณี Update: ข้ามแถวของตัวเอง (เทียบกับ oldClassroom)
+        if (mode === 'update') {
+          if (rowClass !== oldClassroom) {
+            if (rowClass === classroom) {
+              return { status: 'error', message: `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว` };
+            }
+            if (rowArea === areaId) {
+              return { status: 'error', message: `เขตพื้นที่ ${areaId} ถูกผูกไว้กับห้อง ${rowClass} แล้ว (ห้ามซ้ำกัน)` };
+            }
+          }
+        }
+      }
+    }
+
+    const advisorsJsonStr = JSON.stringify(advisors);
+
+    if (mode === 'create') {
+      sheet.appendRow([classroom, areaId, advisorsJsonStr]);
+      return { status: 'success', message: `เพิ่มห้องเรียน ${classroom} สำเร็จ` };
+    }
+
+    if (mode === 'update') {
+      let targetRowIndex = -1;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][classCol]).trim() === oldClassroom) {
+          targetRowIndex = r + 1; // 1-indexed
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบข้อมูลห้องเรียน ${oldClassroom} ที่ต้องการแก้ไข` };
+      }
+
+      sheet.getRange(targetRowIndex, classCol + 1).setValue(classroom);
+      sheet.getRange(targetRowIndex, areaCol + 1).setValue(areaId);
+      sheet.getRange(targetRowIndex, advCol + 1).setValue(advisorsJsonStr);
+
+      return { status: 'success', message: `แก้ไขข้อมูลห้องเรียน ${classroom} สำเร็จ` };
+    }
+
+    if (mode === 'delete') {
+      let targetRowIndex = -1;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][classCol]).trim() === classroom) {
+          targetRowIndex = r + 1;
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบข้อมูลห้องเรียน ${classroom} ที่ต้องการลบ` };
+      }
+
+      sheet.deleteRow(targetRowIndex);
+      return { status: 'success', message: `ลบข้อมูลห้องเรียน ${classroom} เรียบร้อยแล้ว` };
+    }
+
+    return { status: 'error', message: `Invalid mode: ${mode}` };
+  } catch (error) {
+    return { status: 'error', message: 'เกิดข้อผิดพลาดในการจัดการห้องเรียน: ' + error.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * จัดการข้อมูลเขตพื้นที่รับผิดชอบ (DB_allArea) : create, update, delete, toggle
+ */
+function handleManageArea(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('DB_allArea');
+    if (!sheet) return { status: 'error', message: 'ไม่พบชีต DB_allArea' };
+
+    const mode = payload.mode || 'create'; // 'create' | 'update' | 'delete' | 'toggle'
+    let areaId = String(payload.area_id || '').trim();
+    const areaName = String(payload.area_name || '').trim();
+    const areaDesc = String(payload.area_description || '').trim();
+    const isActive = payload.is_active !== undefined ? (String(payload.is_active).toUpperCase() === 'TRUE' ? 'TRUE' : 'FALSE') : 'TRUE';
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).trim().toLowerCase());
+    const idCol = headers.indexOf('area_id');
+    const nameCol = headers.indexOf('area_name');
+    const descCol = headers.indexOf('area_description');
+    const activeCol = headers.indexOf('is_active');
+
+    if (idCol === -1 || nameCol === -1 || activeCol === -1) {
+      return { status: 'error', message: 'หัวตาราง DB_allArea ไม่ถูกต้อง' };
+    }
+
+    if (mode === 'create') {
+      if (!areaName) {
+        return { status: 'error', message: 'กรุณาระบุชื่อเขตพื้นที่' };
+      }
+
+      // Auto-generate next area_id (e.g. AREA001 -> find max number + 1)
+      let maxNum = 0;
+      for (let r = 1; r < data.length; r++) {
+        const id = String(data[r][idCol]).trim();
+        const match = id.match(/^AREA(\d+)$/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+
+      const nextNum = maxNum + 1;
+      areaId = 'AREA' + String(nextNum).padStart(3, '0');
+
+      sheet.appendRow([areaId, areaName, areaDesc, isActive]);
+      return {
+        status: 'success',
+        message: `เพิ่มเขตพื้นที่ ${areaName} (${areaId}) สำเร็จ`,
+        area_id: areaId
+      };
+    }
+
+    if (mode === 'update') {
+      if (!areaId) return { status: 'error', message: 'ไม่พบรหัสเขตพื้นที่' };
+      if (!areaName) return { status: 'error', message: 'กรุณาระบุชื่อเขตพื้นที่' };
+
+      let targetRowIndex = -1;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === areaId) {
+          targetRowIndex = r + 1;
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบเขตพื้นที่ ${areaId} ในระบบ` };
+      }
+
+      sheet.getRange(targetRowIndex, nameCol + 1).setValue(areaName);
+      if (descCol !== -1) sheet.getRange(targetRowIndex, descCol + 1).setValue(areaDesc);
+      sheet.getRange(targetRowIndex, activeCol + 1).setValue(isActive);
+
+      return { status: 'success', message: `แก้ไขเขตพื้นที่ ${areaName} สำเร็จ` };
+    }
+
+    if (mode === 'toggle') {
+      if (!areaId) return { status: 'error', message: 'ไม่พบรหัสเขตพื้นที่' };
+
+      let targetRowIndex = -1;
+      let currentActive = 'TRUE';
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === areaId) {
+          targetRowIndex = r + 1;
+          currentActive = String(data[r][activeCol]).trim().toUpperCase();
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบเขตพื้นที่ ${areaId}` };
+      }
+
+      const newStatus = currentActive === 'TRUE' ? 'FALSE' : 'TRUE';
+      sheet.getRange(targetRowIndex, activeCol + 1).setValue(newStatus);
+      return {
+        status: 'success',
+        message: `เปลี่ยนสถานะเป็น ${newStatus === 'TRUE' ? 'เปิดใช้งาน' : 'ปิดใช้งาน'} สำเร็จ`,
+        is_active: newStatus === 'TRUE'
+      };
+    }
+
+    if (mode === 'delete') {
+      if (!areaId) return { status: 'error', message: 'ไม่พบรหัสเขตพื้นที่ที่ต้องการลบ' };
+
+      // Safety check: ตรวจสอบว่ามีห้องเรียนใน DB_classroom ผูกเขตนี้อยู่หรือไม่
+      const classSheet = ss.getSheetByName('DB_classroom');
+      if (classSheet) {
+        const classData = classSheet.getDataRange().getValues();
+        if (classData.length > 1) {
+          const classHeaders = classData[0].map(h => String(h).trim().toLowerCase());
+          const cClassCol = classHeaders.indexOf('classroom');
+          const cAreaCol = classHeaders.indexOf('area_id');
+          if (cAreaCol !== -1 && cClassCol !== -1) {
+            for (let r = 1; r < classData.length; r++) {
+              if (String(classData[r][cAreaCol]).trim() === areaId) {
+                const linkedRoom = String(classData[r][cClassCol]).trim();
+                return {
+                  status: 'error',
+                  message: `ไม่สามารถลบเขตพื้นที่นี้ได้ เนื่องจากห้อง ${linkedRoom} กำลังผูกอยู่กับเขตนี้ กรุณาเปลี่ยนเขตของห้องเรียนก่อนลบ`
+                };
+              }
+            }
+          }
+        }
+      }
+
+      let targetRowIndex = -1;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === areaId) {
+          targetRowIndex = r + 1;
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบเขตพื้นที่ ${areaId} ที่ต้องการลบ` };
+      }
+
+      sheet.deleteRow(targetRowIndex);
+      return { status: 'success', message: `ลบเขตพื้นที่ ${areaId} เรียบร้อยแล้ว` };
+    }
+
+    return { status: 'error', message: `Invalid mode: ${mode}` };
+  } catch (error) {
+    return { status: 'error', message: 'เกิดข้อผิดพลาดในการจัดการเขตพื้นที่: ' + error.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * จัดการข้อมูลเกณฑ์การตรวจ (LIST_allChecklist) : create, update, delete, toggle
+ */
+function handleManageChecklist(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('LIST_allChecklist');
+    if (!sheet) return { status: 'error', message: 'ไม่พบชีต LIST_allChecklist' };
+
+    const mode = payload.mode || 'create'; // 'create' | 'update' | 'delete' | 'toggle'
+    let checklistId = String(payload.checklist_id || '').trim();
+    const type = String(payload.type || 'room').toLowerCase(); // 'room' | 'area'
+    const checklistName = String(payload.checklist_name || '').trim();
+    const checklistDetail = String(payload.checklist_detail || '').trim();
+    let maxScore = parseInt(payload.max_score, 10);
+    if (isNaN(maxScore) || maxScore < 2) maxScore = 2;
+    if (maxScore > 10) maxScore = 10;
+    const isActive = payload.is_active !== undefined ? (String(payload.is_active).toUpperCase() === 'TRUE' ? 'TRUE' : 'FALSE') : 'TRUE';
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0].map(h => String(h).trim().toLowerCase());
+    const idCol = headers.indexOf('checklist_id');
+    const nameCol = headers.indexOf('checklist_name');
+    const detailCol = headers.indexOf('checklist_detail');
+    const scoreCol = headers.indexOf('max_score');
+    const activeCol = headers.indexOf('is_active');
+
+    if (idCol === -1 || nameCol === -1 || scoreCol === -1 || activeCol === -1) {
+      return { status: 'error', message: 'หัวตาราง LIST_allChecklist ไม่ถูกต้อง' };
+    }
+
+    if (mode === 'create') {
+      if (!checklistName) {
+        return { status: 'error', message: 'กรุณาระบุชื่อเกณฑ์การประเมิน' };
+      }
+
+      const prefix = type === 'area' ? 'area' : 'room';
+      let maxNum = 0;
+      const prefixRegex = new RegExp(`^${prefix}(\\d+)$`, 'i');
+
+      for (let r = 1; r < data.length; r++) {
+        const id = String(data[r][idCol]).trim();
+        const match = id.match(prefixRegex);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+
+      const nextNum = maxNum + 1;
+      checklistId = prefix + String(nextNum).padStart(3, '0');
+
+      sheet.appendRow([checklistId, checklistName, checklistDetail, maxScore, isActive]);
+      return {
+        status: 'success',
+        message: `เพิ่มเกณฑ์การประเมิน ${checklistName} (${checklistId}) สำเร็จ`,
+        checklist_id: checklistId
+      };
+    }
+
+    if (mode === 'update') {
+      if (!checklistId) return { status: 'error', message: 'ไม่พบรหัสเกณฑ์การประเมิน' };
+      if (!checklistName) return { status: 'error', message: 'กรุณาระบุชื่อเกณฑ์การประเมิน' };
+
+      let targetRowIndex = -1;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === checklistId) {
+          targetRowIndex = r + 1;
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบเกณฑ์ ${checklistId} ในระบบ` };
+      }
+
+      sheet.getRange(targetRowIndex, nameCol + 1).setValue(checklistName);
+      if (detailCol !== -1) sheet.getRange(targetRowIndex, detailCol + 1).setValue(checklistDetail);
+      sheet.getRange(targetRowIndex, scoreCol + 1).setValue(maxScore);
+      sheet.getRange(targetRowIndex, activeCol + 1).setValue(isActive);
+
+      return { status: 'success', message: `แก้ไขเกณฑ์ ${checklistName} สำเร็จ` };
+    }
+
+    if (mode === 'toggle') {
+      if (!checklistId) return { status: 'error', message: 'ไม่พบรหัสเกณฑ์' };
+
+      let targetRowIndex = -1;
+      let currentActive = 'TRUE';
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === checklistId) {
+          targetRowIndex = r + 1;
+          currentActive = String(data[r][activeCol]).trim().toUpperCase();
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบเกณฑ์ ${checklistId}` };
+      }
+
+      const newStatus = currentActive === 'TRUE' ? 'FALSE' : 'TRUE';
+      sheet.getRange(targetRowIndex, activeCol + 1).setValue(newStatus);
+      return {
+        status: 'success',
+        message: `เปลี่ยนสถานะเป็น ${newStatus === 'TRUE' ? 'เปิดใช้งาน' : 'ปิดใช้งาน'} สำเร็จ`,
+        is_active: newStatus === 'TRUE'
+      };
+    }
+
+    if (mode === 'delete') {
+      if (!checklistId) return { status: 'error', message: 'ไม่พบรหัสเกณฑ์ที่ต้องการลบ' };
+
+      let targetRowIndex = -1;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === checklistId) {
+          targetRowIndex = r + 1;
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบเกณฑ์ ${checklistId} ที่ต้องการลบ` };
+      }
+
+      sheet.deleteRow(targetRowIndex);
+      return { status: 'success', message: `ลบเกณฑ์การประเมิน ${checklistId} เรียบร้อยแล้ว` };
+    }
+
+    return { status: 'error', message: `Invalid mode: ${mode}` };
+  } catch (error) {
+    return { status: 'error', message: 'เกิดข้อผิดพลาดในการจัดการเกณฑ์: ' + error.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * จัดการข้อมูลครู (DB_teachers) : create, delete
+ */
+function handleManageTeacher(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    let sheet = ss.getSheetByName('DB_teachers');
+    if (!sheet) {
+      sheet = ss.insertSheet('DB_teachers');
+      sheet.getRange(1, 1).setValue('teacherName');
+    }
+
+    const mode = payload.mode || 'create';
+    const teacherName = String(payload.teacherName || '').trim();
+
+    if (!teacherName) {
+      return { status: 'error', message: 'กรุณาระบุชื่อครู' };
+    }
+
+    const data = sheet.getDataRange().getValues();
+
+    if (mode === 'create') {
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][0]).trim() === teacherName) {
+          return { status: 'error', message: `ครูชื่อ "${teacherName}" มีอยู่ในระบบแล้ว` };
+        }
+      }
+      sheet.appendRow([teacherName]);
+      return { status: 'success', message: `เพิ่มครู "${teacherName}" สำเร็จ` };
+    }
+
+    if (mode === 'delete') {
+      let targetRowIndex = -1;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][0]).trim() === teacherName) {
+          targetRowIndex = r + 1;
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบครู "${teacherName}" ในระบบ` };
+      }
+
+      sheet.deleteRow(targetRowIndex);
+      return { status: 'success', message: `ลบครู "${teacherName}" สำเร็จ` };
+    }
+
+    return { status: 'error', message: `Invalid mode: ${mode}` };
+  } catch (error) {
+    return { status: 'error', message: 'เกิดข้อผิดพลาดในการจัดการข้อมูลครู: ' + error.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
