@@ -6,6 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+    <meta name="referrer" content="no-referrer" />
     <title>ระบบตรวจสอบความสะอาด - โรงเรียนประชาสงเคราะห์วิทยา</title>
 
     <!-- 1. Google Fonts: Noto Sans Thai -->
@@ -314,6 +315,7 @@
                 id="schoolLogo"
                 src="https://lh3.googleusercontent.com/pw/AP1GczNLx3RZP5eNhiYlYMV3vwy5-ukdanDiH3PHMeqMW2mhInkLQvJ38MefB4Agug-U-Xrk2Syj4BGcNcOWOS0DJZsEhBx6wXcWBOhOKzKGDXFQIWAExilHrEluIs9r4kgXwyySrWcTWBfpm5jIM939f_va=w497-h496-s-no-gm?authuser=0"
                 alt="Logo โรงเรียนประชาสงเคราะห์วิทยา"
+                referrerpolicy="no-referrer"
                 class="w-10 h-10 sm:w-13 sm:h-13 rounded-full border-2 border-emerald-400 bg-white object-contain shadow-sm transition-transform hover:scale-105"
               />
             </div>
@@ -2790,6 +2792,10 @@
           // Initialize Fancybox 5
           if (typeof Fancybox !== "undefined") {
             Fancybox.bind("[data-fancybox]", {
+              type: "image",
+              Images: {
+                initialSize: "fit",
+              },
               Toolbar: {
                 display: {
                   left: ["infobar"],
@@ -2812,6 +2818,42 @@
           swalShowError("เกิดข้อผิดพลาดในการเริ่มต้นระบบ", err.message);
         }
       });
+
+      /**
+       * แปลง URL รูปภาพจาก Google Drive ให้เป็นรูปแบบ Direct Thumbnail API ที่รองรับทุกเบราว์เซอร์ (LINE, Brave, Safari, Chrome)
+       */
+      function getGoogleDriveImageUrl(imgObjOrUrl, size = "w1200") {
+        if (!imgObjOrUrl) return "";
+        let fileId = "";
+        let rawUrl = "";
+
+        if (typeof imgObjOrUrl === "string") {
+          rawUrl = imgObjOrUrl.trim();
+        } else if (typeof imgObjOrUrl === "object") {
+          fileId = imgObjOrUrl.id || "";
+          rawUrl =
+            imgObjOrUrl.url ||
+            imgObjOrUrl.lh3Url ||
+            imgObjOrUrl.driveUrl ||
+            "";
+        }
+
+        // ดึง fileId จาก URL รูปแบบต่างๆ
+        if (!fileId && rawUrl) {
+          const idMatch = rawUrl.match(
+            /(?:\/d\/|id=|\/file\/d\/)([a-zA-Z0-9_-]{20,})/,
+          );
+          if (idMatch && idMatch[1]) {
+            fileId = idMatch[1];
+          }
+        }
+
+        if (fileId) {
+          return `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
+        }
+
+        return rawUrl;
+      }
 
       async function loadInitialData() {
         try {
@@ -3519,12 +3561,17 @@
             allowedAreas = AppState.currentUser.allowed_areas;
           }
 
+          let addedAreaCount = 0;
           AppState.areas.forEach((a) => {
             if (String(a.is_active).toUpperCase() === "FALSE") return;
 
             const assignedRooms = (AppState.classrooms || [])
-              .filter((c) => c.area_id === a.area_id)
+              .filter((c) => String(c.area_id || "").trim() === String(a.area_id || "").trim())
               .map((c) => c.classroom);
+
+            // ถ้าเขตพื้นที่ไหนยังไม่มีห้องเรียนผูกด้วย ไม่ต้องแสดงในรายการ
+            if (assignedRooms.length === 0) return;
+
             const isAllowed =
               allowedAreas === "all" ||
               (Array.isArray(allowedAreas) &&
@@ -3538,12 +3585,17 @@
               const statusLabel = isChecked ? "✅ ตรวจแล้ว" : "❌ ยังไม่ตรวจ";
               const opt = document.createElement("option");
               opt.value = a.area_id;
-              const roomLabel =
-                assignedRooms.length > 0 ? assignedRooms.join(", ") : a.area_id;
+              const roomLabel = assignedRooms.join(", ");
               opt.textContent = `${a.area_name} (${roomLabel}) [${statusLabel}]`;
               areaSelect.appendChild(opt);
+              addedAreaCount++;
             }
           });
+
+          if (addedAreaCount === 0) {
+            areaSelect.innerHTML =
+              '<option value="">-- ไม่มีเขตพื้นที่ที่ผูกกับห้องเรียน --</option>';
+          }
         }
       }
 
@@ -3589,8 +3641,20 @@
             if (item) {
               AppState.areaForm.targetId = item.area_id;
               AppState.areaForm.targetName = item.area_name;
-              descText.textContent =
-                item.area_description || "ไม่มีรายละเอียดเพิ่มเติม";
+
+              const assignedRooms = (AppState.classrooms || [])
+                .filter(
+                  (c) =>
+                    String(c.area_id || "").trim() ===
+                    String(item.area_id || "").trim(),
+                )
+                .map((c) => c.classroom);
+              const roomDisplay =
+                assignedRooms.length > 0
+                  ? ` (ห้องที่รับผิดชอบ: ${assignedRooms.join(", ")})`
+                  : "";
+
+              descText.textContent = `${item.area_description || "ไม่มีรายละเอียดเพิ่มเติม"}${roomDisplay}`;
               infoBox.classList.remove("hidden");
             }
           } else {
@@ -4490,18 +4554,23 @@
               commentBox.classList.add("hidden");
             }
 
-            // Gallery (Fancybox 5)
+            // Gallery (Fancybox 5 with cross-browser compatibility)
             galleryGrid.innerHTML = "";
             const images = Array.isArray(record.image_urls)
               ? record.image_urls
               : [];
             if (images.length > 0) {
               images.forEach((img, idx) => {
-                const imgUrl =
-                  typeof img === "string" ? img : img.url || img.driveUrl || "";
+                const fullImgUrl = getGoogleDriveImageUrl(img, "w1600");
+                const thumbImgUrl = getGoogleDriveImageUrl(img, "w400");
+                const rawUrl = typeof img === "string" ? img : img.url || img.driveUrl || "";
+
                 const thumb = document.createElement("a");
-                thumb.href = imgUrl;
+                thumb.href = fullImgUrl;
+                thumb.setAttribute("data-src", fullImgUrl);
+                thumb.setAttribute("data-type", "image");
                 thumb.setAttribute("data-fancybox", "inspection-gallery");
+                thumb.setAttribute("data-thumb", thumbImgUrl);
                 thumb.setAttribute(
                   "data-caption",
                   `${record.target_name} (รูปที่ ${idx + 1}) - ผู้ตรวจ: ${record.inspector_name}`,
@@ -4509,7 +4578,7 @@
                 thumb.className =
                   "relative h-24 rounded-xl overflow-hidden border border-slate-200 shadow-sm block group bg-slate-100";
                 thumb.innerHTML = `
-                <img src="${imgUrl}" alt="รูปภาพตรวจ ${idx + 1}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                <img src="${thumbImgUrl}" alt="รูปภาพตรวจ ${idx + 1}" referrerpolicy="no-referrer" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" onerror="this.onerror=null; this.src='${rawUrl}';" />
                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />

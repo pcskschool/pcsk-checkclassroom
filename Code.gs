@@ -510,8 +510,9 @@ function handleSaveInspection(payload) {
               }
             }
             
-            // Direct View URL for optimal preview and Fancybox compatibility
-            const previewUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+            // Direct View URL for optimal preview and cross-browser Fancybox compatibility (LINE, Brave, Safari, Chrome)
+            const previewUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`;
+            const lh3Url = `https://lh3.googleusercontent.com/d/${fileId}`;
             let directUrl = `https://drive.google.com/file/d/${fileId}/view`;
             try {
               directUrl = file.getUrl();
@@ -523,6 +524,7 @@ function handleSaveInspection(payload) {
               id: fileId,
               name: filename,
               url: previewUrl,
+              lh3Url: lh3Url,
               driveUrl: directUrl
             });
           }
@@ -835,7 +837,8 @@ function syncDriveImagesToSheetLogs() {
         fileMap[recordId].push({
           id: fileId,
           name: filename,
-          url: `https://lh3.googleusercontent.com/d/${fileId}`,
+          url: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`,
+          lh3Url: `https://lh3.googleusercontent.com/d/${fileId}`,
           driveUrl: `https://drive.google.com/file/d/${fileId}/view`
         });
       }

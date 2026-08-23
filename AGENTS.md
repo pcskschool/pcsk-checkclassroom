@@ -101,10 +101,10 @@ PCSK-CheckClassroom V3/
 * **หากพบข้อมูลเดิม:** ทำการ **บันทึกทับ (Overwrite/Update)** แถวเดิมทันที พร้อมลบรูปภาพชุดเก่าใน Drive เพื่อประหยัดพื้นที่
 * **หากไม่พบข้อมูลเดิม:** ทำการ **เพิ่มแถวใหม่ (Append Row)**
 
-### 5.2 การประมวลผลรูปภาพ (Image Processing Pipeline)
+### 5.2 การประมวลผลรูปภาพและการแสดงผลข้ามเบราว์เซอร์ (Image Processing & Cross-Browser Pipeline)
 1. **Client-Side (HTML5 Canvas):** บีบอัดรูปภาพก่อนส่ง ขนาดด้านยาวสุดไม่เกิน **1024px**, Aspect Ratio คงเดิม, Quality **0.78 JPEG** (แนบได้สูงสุด 5 รูป)
 2. **Backend Storage:** ถอดรหัส Base64 สร้างไฟล์ลง Google Drive Folder พร้อมระบบครอบ `try...catch` ป้องกันข้อจำกัดสิทธิ์แชร์สาธารณะขององค์กร (Google Workspace Safe Sharing)
-3. **URL Mapping:** สร้าง Direct Link `https://lh3.googleusercontent.com/d/{fileId}` สำหรับแสดงผลบน Lightbox Fancybox 5 ได้อย่างรวดเร็ว
+3. **URL Mapping & Cross-Browser Direct Link:** ใช้ Google Drive Direct Thumbnail API `https://drive.google.com/thumbnail?id={fileId}&sz=w1600` และกำหนด `<meta name="referrer" content="no-referrer">` พร้อม `data-type="image"` บน Fancybox 5 เพื่อป้องกันปัญหาบล็อก CORS / Referrer บนเบราว์เซอร์อื่น เช่น LINE In-App Browser, Brave Shield, Safari, Firefox
 
 ### 5.3 ระดับคะแนนและการแสดงผล (Score Badges)
 * 🟢 **สีเขียว (ยอดเยี่ยม):** คะแนน $\ge 80\%$
