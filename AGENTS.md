@@ -68,7 +68,7 @@ PCSK-CheckClassroom V3/
 
 ### 4.3 `DB_classroom` (ฐานข้อมูลห้องเรียน)
 * **Headers:** `classroom` | `area_id` | `advisors`
-* **ตัวอย่าง:** `ม.1/1` | `AREA001` | `['ครูผกามาศ เสือคล้าย', 'ครูอุเทน หมื่นสุวรรณ์']`
+* **ตัวอย่าง:** `ม.1/1` | `AREA001` (หรือเว้นว่าง) | `['ครูผกามาศ เสือคล้าย', 'ครูอุเทน หมื่นสุวรรณ์']`
 
 ### 4.4 `DB_allArea` (ฐานข้อมูลเขตพื้นที่รับผิดชอบ)
 * **Headers:** `area_id` | `area_name` | `area_description` | `is_active`
@@ -85,7 +85,8 @@ PCSK-CheckClassroom V3/
 * **ตัวอย่าง:** `ครูผกามาศ เสือคล้าย`
 
 ### 4.7 `LOG_inspections` (บันทึกประวัติการตรวจ)
-* **Headers:** `record_id` | `timestamp` | `date_str` | `type` | `target_id` | `target_name` | `inspector_name` | `scores_json` | `total_score` | `max_score` | `percentage` | `comment` | `image_urls_json` | `term`
+* **Headers:** `record_id` | `timestamp` | `date_str` | `type` | `target_id` | `target_name` | `inspector_name` | `scores_json` | `total_score` | `max_score` | `percentage` | `comment` | `image_urls_json` | `term` | `day_of_week`
+* **ตัวอย่าง `day_of_week`:** `จันทร์`, `อังคาร`, `พุธ`, `พฤหัสบดี`, `ศุกร์`, `เสาร์`, `อาทิตย์`
 
 ---
 
@@ -110,6 +111,13 @@ PCSK-CheckClassroom V3/
 * 🟠 **สีส้ม (พอใช้):** คะแนน $50\% - 64\%$
 * 🔴 **สีแดง (ควรปรับปรุง):** คะแนน $< 50\%$
 * ⚪ **สีเทา:** ยังไม่ได้ตรวจ
+
+### 5.4 สถิติผลการตรวจและตาราง Multi-Level (Stats & Ranking Engine)
+* **การจำแนกระดับชั้น:** แยก 6 ตาราง (ม.1 ถึง ม.6) โดย ม.1-ม.3 ใช้ Green Theme และ ม.4-ม.6 ใช้ Amber Theme
+* **โหมดรวมทั้งหมด (All Time):** คำนวณคะแนนเต็ม baseline โดย $\text{max\_score} \times \text{จำนวนวันบันทึกข้อมูล}$ พร้อมระบุจำนวนวันรวม
+* **โหมดรายวัน (Daily):** แสดงรายการวันที่ที่มีบันทึกในระบบในรูปแบบวันที่ไทย (เช่น `23 ส.ค. 69`)
+* **การปัดเศษทศนิยม:** ใช้ `Math.round()` แสดงผลเป็นจำนวนเต็ม ไม่มีทศนิยม
+* **การพิมพ์และส่งออก:** รองรับ `@media print` สำหรับกระดาษ A4 และปุ่ม Export ไฟล์ CSV (UTF-8 BOM)
 
 ---
 

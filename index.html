@@ -162,6 +162,79 @@
         transform: scale(1.05);
         box-shadow: 0 2px 4px rgba(217, 119, 6, 0.25);
       }
+
+      /* Screen vs Print Utility Classes */
+      .print-only {
+        display: none !important;
+      }
+
+      /* Print Styling for Clean A4 Report */
+      @media print {
+        .print-only {
+          display: block !important;
+        }
+
+        .no-print,
+        header,
+        footer,
+        #announcementBanner,
+        #loginModal,
+        #inspectionDetailModal,
+        #classroomModal,
+        #areaModal,
+        #checklistModal,
+        #teacherModal,
+        #userModal,
+        nav,
+        button {
+          display: none !important;
+        }
+
+        body {
+          background-color: #ffffff !important;
+          color: #000000 !important;
+          font-size: 10pt !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        main {
+          max-width: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        .tab-content {
+          display: none !important;
+        }
+
+        #section-stats {
+          display: block !important;
+          opacity: 1 !important;
+        }
+
+        table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          page-break-inside: auto !important;
+        }
+
+        tr {
+          page-break-inside: avoid !important;
+          page-break-after: auto !important;
+        }
+
+        thead {
+          display: table-header-group !important;
+        }
+
+        th,
+        td {
+          border: 1px solid #333333 !important;
+          padding: 3px 4px !important;
+          font-size: 8.5pt !important;
+        }
+      }
     </style>
   </head>
 
@@ -899,7 +972,6 @@
                     id="roomFileInput"
                     multiple
                     accept="image/*"
-                    capture="environment"
                     onchange="handleImageUpload(event, 'room')"
                     class="hidden"
                   />
@@ -1159,7 +1231,6 @@
                     id="areaFileInput"
                     multiple
                     accept="image/*"
-                    capture="environment"
                     onchange="handleImageUpload(event, 'area')"
                     class="hidden"
                   />
@@ -1748,7 +1819,7 @@
           <div class="space-y-1.5">
             <label class="block text-xs font-bold text-slate-700">
               เขตพื้นที่รับผิดชอบ:
-              <span class="text-red-500">* (ห้ามซ้ำกับห้องอื่น)</span>
+              <span class="text-slate-500 font-normal">(สามารถเว้นว่างได้ หรือเลือก 1 เขต)</span>
             </label>
             <select
               id="classroomAreaSelect"
@@ -2249,6 +2320,281 @@
       </div>
     </div>
 
+    <!-- ================================================================= -->
+    <!-- USER MANAGEMENT MODAL (Create & Edit User) -->
+    <!-- ================================================================= -->
+    <div
+      id="userModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"
+    >
+      <div
+        id="userModalCard"
+        class="bg-white rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-slate-100 transform transition-all scale-95 duration-300 max-h-[92vh] flex flex-col"
+      >
+        <!-- Modal Header -->
+        <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+          <div class="flex items-center space-x-3">
+            <div
+              id="userModalIconContainer"
+              class="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-inner"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 id="userModalTitle" class="text-lg sm:text-xl font-bold text-slate-800">
+                เพิ่มผู้ใช้งานใหม่
+              </h3>
+              <p id="userModalSubtitle" class="text-xs text-slate-500">
+                กำหนดรหัสผู้ใช้ รหัสผ่าน PIN บทบาท และสิทธิ์การตรวจ
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="closeUserModal()"
+            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body (Scrollable) -->
+        <div class="py-4 space-y-4 overflow-y-auto flex-grow pr-1">
+          <input type="hidden" id="userModalMode" value="create" />
+
+          <!-- Row 1: User ID & Full Name -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Field 1: User ID (Auto generated) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700">รหัสผู้ใช้ (User ID):</label>
+              </div>
+              <input
+                type="text"
+                id="userIdInput"
+                readonly
+                class="w-full text-sm p-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-mono font-bold cursor-not-allowed"
+              />
+            </div>
+
+            <!-- Field 2: Full Name -->
+            <div class="sm:col-span-2 space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700">
+                ชื่อ-นามสกุลผู้ใช้งาน: <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  type="text"
+                  id="userFullNameInput"
+                  list="teacherNameList"
+                  placeholder="เช่น ครูผกามาศ เสือคล้าย หรือพิมพ์ชื่อเอง"
+                  class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 font-semibold text-slate-800 transition"
+                />
+                <datalist id="teacherNameList">
+                  <!-- Populated from AppState.teachers -->
+                </datalist>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: PIN (6 Digits) -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700">
+                รหัสผ่าน PIN (ตัวเลข 6 หลัก): <span class="text-red-500">*</span>
+              </label>
+              <span id="pinHelperText" class="text-[11px] text-slate-400 font-medium">เฉพาะตัวเลข 6 หลัก</span>
+            </div>
+            <div class="relative">
+              <input
+                type="password"
+                id="userPinInput"
+                maxlength="6"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                placeholder="เช่น 123456"
+                class="w-full text-sm font-mono tracking-wider p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 text-slate-800 transition"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
+              />
+              <button
+                type="button"
+                onclick="toggleUserPinVisibility()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                title="แสดง/ซ่อน PIN"
+              >
+                <svg id="userPinEyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Row 3: Role (Teacher vs Inspector) -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">บทบาทและสิทธิ์ผู้ใช้งาน (Role): <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <label class="flex items-start space-x-2.5 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition" id="roleTeacherLabel">
+                <input
+                  type="radio"
+                  name="userRoleRadio"
+                  value="teacher"
+                  checked
+                  onchange="handleUserRoleRadioChange('teacher')"
+                  class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 mt-0.5"
+                />
+                <div>
+                  <span class="text-xs font-bold text-slate-800 block">👨‍🏫 คุณครู (Teacher)</span>
+                  <span class="text-[11px] text-slate-500 block leading-tight">เข้าถึงได้ทุกเมนู รวมถึงการตั้งค่าระบบ</span>
+                </div>
+              </label>
+              <label class="flex items-start space-x-2.5 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition" id="roleInspectorLabel">
+                <input
+                  type="radio"
+                  name="userRoleRadio"
+                  value="Inspector"
+                  onchange="handleUserRoleRadioChange('Inspector')"
+                  class="w-4 h-4 text-blue-600 focus:ring-blue-500 mt-0.5"
+                />
+                <div>
+                  <span class="text-xs font-bold text-slate-800 block">🔍 ผู้ตรวจ (Inspector)</span>
+                  <span class="text-[11px] text-slate-500 block leading-tight">ตรวจความสะอาดห้องและเขตตามสิทธิ์</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Row 4: Allowed Rooms -->
+          <div class="space-y-2 p-3.5 bg-slate-50/70 border border-slate-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700">🏫 สิทธิ์การตรวจห้องเรียน (Allowed Rooms):</label>
+            </div>
+            <div class="flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
+              <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="userRoomsOptionRadio"
+                  value="all"
+                  checked
+                  onchange="handleUserRoomsOptionChange('all')"
+                  class="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span>ตรวจได้ทุกห้องเรียน (all)</span>
+              </label>
+              <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="userRoomsOptionRadio"
+                  value="custom"
+                  onchange="handleUserRoomsOptionChange('custom')"
+                  class="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span>ระบุเฉพาะบางห้องเรียน</span>
+              </label>
+            </div>
+            <!-- Custom Room Checkbox Grid -->
+            <div id="userCustomRoomsContainer" class="hidden pt-2 border-t border-slate-200 space-y-2">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-slate-500 font-medium">เลือกห้องเรียนที่อนุญาตให้ตรวจ:</span>
+                <div class="space-x-2">
+                  <button type="button" onclick="selectAllUserRooms(true)" class="text-blue-600 hover:underline font-semibold">เลือกทั้งหมด</button>
+                  <span class="text-slate-300">•</span>
+                  <button type="button" onclick="selectAllUserRooms(false)" class="text-slate-500 hover:underline">ล้างทั้งหมด</button>
+                </div>
+              </div>
+              <div id="userRoomsCheckboxGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-36 overflow-y-auto p-2 bg-white rounded-lg border border-slate-200">
+                <!-- Checkboxes populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 5: Allowed Areas -->
+          <div class="space-y-2 p-3.5 bg-slate-50/70 border border-slate-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700">📍 สิทธิ์การตรวจเขตพื้นที่ (Allowed Areas):</label>
+            </div>
+            <div class="flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
+              <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="userAreasOptionRadio"
+                  value="all"
+                  checked
+                  onchange="handleUserAreasOptionChange('all')"
+                  class="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                />
+                <span>ตรวจได้ทุกเขตพื้นที่ (all)</span>
+              </label>
+              <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="userAreasOptionRadio"
+                  value="custom"
+                  onchange="handleUserAreasOptionChange('custom')"
+                  class="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                />
+                <span>ระบุเฉพาะบางเขตพื้นที่</span>
+              </label>
+            </div>
+            <!-- Custom Area Checkbox Grid -->
+            <div id="userCustomAreasContainer" class="hidden pt-2 border-t border-slate-200 space-y-2">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-slate-500 font-medium">เลือกเขตพื้นที่ที่อนุญาตให้ตรวจ:</span>
+                <div class="space-x-2">
+                  <button type="button" onclick="selectAllUserAreas(true)" class="text-blue-600 hover:underline font-semibold">เลือกทั้งหมด</button>
+                  <span class="text-slate-300">•</span>
+                  <button type="button" onclick="selectAllUserAreas(false)" class="text-slate-500 hover:underline">ล้างทั้งหมด</button>
+                </div>
+              </div>
+              <div id="userAreasCheckboxGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto p-2 bg-white rounded-lg border border-slate-200">
+                <!-- Checkboxes populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 6: Status Toggle (is_active) -->
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between">
+            <div class="space-y-0.5">
+              <span class="text-xs font-bold text-slate-800 block">สถานะการใช้งานบัญชีผู้ใช้</span>
+              <p class="text-[11px] text-slate-500">เปิดให้สามารถใช้รหัส PIN เพื่อเข้าสู่ระบบและบันทึกข้อมูลได้</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="userIsActiveInput" class="sr-only peer" checked />
+              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="border-t border-slate-100 pt-3 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onclick="closeUserModal()"
+            class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="button"
+            id="userModalSubmitBtn"
+            onclick="submitUserModal()"
+            class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm transition transform active:scale-98"
+          >
+            บันทึกข้อมูล
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Keypad Button Styling -->
     <style>
       .pin-key-btn {
@@ -2298,6 +2644,16 @@
         todaySummary: [],
         activeTab: "todaySummary",
         systemSettingsSubTab: "general", // 'general' | 'classroom' | 'area' | 'checklist'
+        userSearchTerm: "",
+        userRoleFilter: "all", // 'all' | 'teacher' | 'Inspector'
+        userStatusFilter: "all", // 'all' | 'active' | 'inactive'
+        statsLogs: [],
+        statsAvailableDates: [],
+        statsTotalDays: 0,
+        statsMode: "all", // 'all' | 'daily'
+        selectedStatsDate: "",
+        selectedGradeFilter: "all", // 'all' | 'm1' | 'm2' | 'm3' | 'm4' | 'm5' | 'm6'
+        statsIsLoading: false,
         isLoading: false,
         roomForm: {
           targetId: "",
@@ -2625,6 +2981,15 @@
                 AppState.teachers = result.data.teachers || fallbackTeachers;
                 AppState.todaySummary = result.data.todaySummary || [];
                 AppState.users = result.data.users || fallbackUsers;
+
+                if (result.data.statsData) {
+                  AppState.statsLogs = result.data.statsData.logs || [];
+                  AppState.statsAvailableDates = result.data.statsData.available_dates || [];
+                  AppState.statsTotalDays = result.data.statsData.total_inspection_days || 0;
+                  if (!AppState.selectedStatsDate && AppState.statsAvailableDates.length > 0) {
+                    AppState.selectedStatsDate = AppState.statsAvailableDates[0].date_str;
+                  }
+                }
               }
             } catch (fetchErr) {
               console.warn("Backend fetch fallback mode:", fetchErr);
@@ -4099,77 +4464,1167 @@
         }
       }
 
+      /**
+       * ส่งออกตารางสถิติความสะอาดห้องเรียนเป็นไฟล์ CSV / Excel (UTF-8 BOM)
+       */
+      function exportStatsToCSV() {
+        try {
+          const mode = AppState.statsMode || "all";
+          const totalDays =
+            AppState.statsTotalDays ||
+            (AppState.statsAvailableDates ? AppState.statsAvailableDates.length : 1) ||
+            1;
+          const availableDates = AppState.statsAvailableDates || [];
+          const selectedDate =
+            AppState.selectedStatsDate ||
+            (availableDates.length > 0 ? availableDates[0].date_str : "");
+          const dayMultiplier = mode === "all" ? (totalDays > 0 ? totalDays : 1) : 1;
+
+          const roomChecklists = (AppState.checklists || []).filter(
+            (c) => c.is_active && String(c.checklist_id).startsWith("room"),
+          );
+          const areaChecklists = (AppState.checklists || []).filter(
+            (c) => c.is_active && String(c.checklist_id).startsWith("area"),
+          );
+
+          let csvContent = "\uFEFF"; // UTF-8 BOM for MS Excel compatibility
+
+          // Title & Metadata
+          const reportTitle =
+            mode === "all"
+              ? `รายงานสถิติความสะอาดห้องเรียน_รวมทั้งหมด_${totalDays}วัน`
+              : `รายงานสถิติความสะอาดห้องเรียน_ประจำวันที่_${selectedDate}`;
+          csvContent += `"${reportTitle}"\n\n`;
+
+          // Header Row 1: Groups
+          let headerRow1 = "ระดับชั้น,ห้องเรียน,";
+          roomChecklists.forEach((ck, idx) => {
+            if (idx === 0) headerRow1 += `คะแนนความสะอาดห้องเรียน,`;
+            else headerRow1 += ",";
+          });
+          headerRow1 += "รวมคะแนนห้องเรียน,ร้อยละห้องเรียน,";
+          areaChecklists.forEach((ack, idx) => {
+            if (idx === 0) headerRow1 += `คะแนนเขตพื้นที่รับผิดชอบ,`;
+            else headerRow1 += ",";
+          });
+          headerRow1 += "รวมคะแนนเขตพื้นที่,ร้อยละเขตพื้นที่,รวมคะแนนทั้งหมด,ร้อยละรวมทั้งหมด\n";
+          csvContent += headerRow1;
+
+          // Header Row 2: Checklists
+          let headerRow2 = "ระดับชั้น,ห้องเรียน,";
+          roomChecklists.forEach((ck) => {
+            headerRow2 += `"${ck.checklist_name}",`;
+          });
+          headerRow2 += "รวมห้องเรียน,ร้อยละ,";
+          areaChecklists.forEach((ack) => {
+            headerRow2 += `"${ack.checklist_name}",`;
+          });
+          headerRow2 += "รวมเขตพื้นที่,ร้อยละ,รวมคะแนน,ร้อยละรวม\n";
+          csvContent += headerRow2;
+
+          // Header Row 3: Max Scores
+          const totalBaseRoomMax =
+            roomChecklists.reduce((sum, ck) => sum + Number(ck.max_score || 3), 0) *
+            dayMultiplier;
+          const totalBaseAreaMax =
+            areaChecklists.reduce((sum, ack) => sum + Number(ack.max_score || 3), 0) *
+            dayMultiplier;
+          const totalBaseOverallMax = totalBaseRoomMax + totalBaseAreaMax;
+
+          let headerRow3 = "-,คะแนนเต็ม,";
+          roomChecklists.forEach((ck) => {
+            headerRow3 += `${Number(ck.max_score || 3) * dayMultiplier},`;
+          });
+          headerRow3 += `${totalBaseRoomMax},100%,`;
+          areaChecklists.forEach((ack) => {
+            headerRow3 += `${Number(ack.max_score || 3) * dayMultiplier},`;
+          });
+          headerRow3 += `${totalBaseAreaMax},100%,${totalBaseOverallMax},100%\n`;
+          csvContent += headerRow3;
+
+          // Data Rows for all grades
+          const grades = ["m1", "m2", "m3", "m4", "m5", "m6"];
+          const gradeNames = {
+            m1: "มัธยมศึกษาปีที่ 1",
+            m2: "มัธยมศึกษาปีที่ 2",
+            m3: "มัธยมศึกษาปีที่ 3",
+            m4: "มัธยมศึกษาปีที่ 4",
+            m5: "มัธยมศึกษาปีที่ 5",
+            m6: "มัธยมศึกษาปีที่ 6",
+          };
+
+          grades.forEach((gKey) => {
+            const classrooms = getGradeClassrooms(gKey);
+            classrooms.forEach((c) => {
+              const stats = calculateClassroomStats(c, mode, selectedDate);
+              let rowStr = `"${gradeNames[gKey]}","${c.classroom}",`;
+
+              // Room item scores
+              roomChecklists.forEach((ck) => {
+                const val = stats.roomItemScores[ck.checklist_id];
+                rowStr += `${val !== null ? val : "-"},`;
+              });
+              rowStr += `"${stats.roomScore !== null ? stats.roomScore : "-"}","${stats.roomPercentage !== null ? stats.roomPercentage + "%" : "-"}",`;
+
+              // Area item scores
+              areaChecklists.forEach((ack) => {
+                const val = stats.areaItemScores[ack.checklist_id];
+                rowStr += `${val !== null ? val : "-"},`;
+              });
+              rowStr += `"${stats.areaScore !== null ? stats.areaScore : "-"}","${stats.areaPercentage !== null ? stats.areaPercentage + "%" : "-"}",`;
+
+              // Overall
+              rowStr += `"${stats.overallScore !== null ? stats.overallScore : "-"}","${stats.overallPercentage !== null ? stats.overallPercentage + "%" : "-"}"\n`;
+
+              csvContent += rowStr;
+            });
+          });
+
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", `${reportTitle}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          swalShowSuccess("ดาวน์โหลดรายงานสถิติเรียบร้อยแล้ว", "", 1200);
+        } catch (err) {
+          console.error("Export Stats CSV error:", err);
+          swalShowError("ดาวน์โหลดไม่สำเร็จ", err.message);
+        }
+      }
+
       // =================================================================
       // 13. STATS & SETTINGS TABS
       // =================================================================
 
-      function renderStatsTab() {
+      // =================================================================
+      // 13. CLASSROOM STATISTICS ENGINE & DATA AGGREGATION (PHASE 2)
+      // =================================================================
+
+      /**
+       * แปลงวันที่ YYYY-MM-DD เป็นรูปแบบวันที่ภาษาไทยแบบย่อ เช่น '23 ส.ค. 69'
+       */
+      function formatThaiDateShort(dateStr) {
+        try {
+          if (!dateStr) return "";
+          const parts = String(dateStr).trim().split("-");
+          if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            const thaiMonths = [
+              "ม.ค.",
+              "ก.พ.",
+              "มี.ค.",
+              "เม.ย.",
+              "พ.ค.",
+              "มิ.ย.",
+              "ก.ค.",
+              "ส.ค.",
+              "ก.ย.",
+              "ต.ค.",
+              "พ.ย.",
+              "ธ.ค.",
+            ];
+            const thaiYearShort = String((year + 543) % 100).padStart(2, "0");
+            const thaiMonth = thaiMonths[month] || "";
+            return `${day} ${thaiMonth} ${thaiYearShort}`;
+          }
+        } catch (e) {}
+        return String(dateStr);
+      }
+
+      /**
+       * ดึงชื่อวันในสัปดาห์ภาษาไทย (อาทิตย์ - เสาร์)
+       */
+      function getThaiDayOfWeek(dateInput) {
+        try {
+          const thaiDays = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+          let d;
+          if (typeof dateInput === "string") {
+            const parts = String(dateInput).trim().split("-");
+            if (parts.length === 3) {
+              d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            } else {
+              d = new Date(dateInput);
+            }
+          } else if (dateInput instanceof Date) {
+            d = dateInput;
+          } else {
+            d = new Date();
+          }
+          const dayIndex = d.getDay();
+          return thaiDays[dayIndex] || "";
+        } catch (e) {
+          return "";
+        }
+      }
+
+      /**
+       * แปลงวันที่ YYYY-MM-DD เป็นรูปแบบวันที่ภาษาไทยแบบเต็ม เช่น 'วันศุกร์ที่ 21 สิงหาคม 2569'
+       */
+      function formatThaiDateFull(dateStr) {
+        try {
+          if (!dateStr) return "";
+          const parts = String(dateStr).trim().split("-");
+          if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            const d = new Date(year, month, day);
+            const thaiDays = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+            const thaiMonthsFull = [
+              "มกราคม",
+              "กุมภาพันธ์",
+              "มีนาคม",
+              "เมษายน",
+              "พฤษภาคม",
+              "มิถุนายน",
+              "กรกฎาคม",
+              "สิงหาคม",
+              "กันยายน",
+              "ตุลาคม",
+              "พฤศจิกายน",
+              "ธันวาคม",
+            ];
+            const dayName = thaiDays[d.getDay()] || "";
+            const monthName = thaiMonthsFull[month] || "";
+            const thaiYear = year + 543;
+            return `วัน${dayName}ที่ ${day} ${monthName} ${thaiYear}`;
+          }
+        } catch (e) {}
+        return String(dateStr);
+      }
+
+      /**
+       * ดึงคะแนนของ checklist_id จาก scores ที่อาจเป็นได้ทั้ง Array ของ Object หรือ Object Map
+       */
+      function extractScoreFromLog(scoresData, checklistId) {
+        if (!scoresData) return null;
+        const targetId = String(checklistId || "").trim().toLowerCase();
+
+        // 1. กรณีเป็น Array ของรายการตรวจ เช่น [{"checklist_id":"room001","score":3}, ...]
+        if (Array.isArray(scoresData)) {
+          const found = scoresData.find((item) => {
+            if (!item) return false;
+            const itemId = String(
+              item.checklist_id || item.id || "",
+            ).trim().toLowerCase();
+            return itemId === targetId;
+          });
+          if (
+            found &&
+            found.score !== undefined &&
+            found.score !== null &&
+            found.score !== ""
+          ) {
+            const num = Number(found.score);
+            return isNaN(num) ? null : num;
+          }
+          return null;
+        }
+
+        // 2. กรณีเป็น Object Map เช่น {"room001": 3, "room002": 2}
+        if (typeof scoresData === "object") {
+          if (
+            scoresData[checklistId] !== undefined &&
+            scoresData[checklistId] !== null &&
+            scoresData[checklistId] !== ""
+          ) {
+            const num = Number(scoresData[checklistId]);
+            return isNaN(num) ? null : num;
+          }
+          for (const key of Object.keys(scoresData)) {
+            if (key.trim().toLowerCase() === targetId) {
+              const num = Number(scoresData[key]);
+              return isNaN(num) ? null : num;
+            }
+          }
+        }
+
+        return null;
+      }
+
+      /**
+       * ดึงข้อมูลประวัติการตรวจทั้งหมดจาก Backend สำหรับแท็บสถิติ
+       */
+      async function loadStatsData(forceReload = false) {
+        if (AppState.statsLogs.length > 0 && !forceReload) {
+          return;
+        }
+
+        AppState.statsIsLoading = true;
+
+        try {
+          if (GAS_API_URL && !GAS_API_URL.includes("placeholder")) {
+            let res = null;
+            // 1. Try GET request
+            try {
+              const response = await fetch(`${GAS_API_URL}?action=getStatsLogs`);
+              res = await response.json();
+            } catch (getErr) {
+              console.warn("GET getStatsLogs failed, trying POST...", getErr);
+            }
+
+            // 2. Try POST fallback if GET didn't return data
+            if (!res || !res.data) {
+              try {
+                const postResponse = await fetch(GAS_API_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "text/plain;charset=utf-8" },
+                  body: JSON.stringify({ action: "getStatsLogs" }),
+                });
+                res = await postResponse.json();
+              } catch (postErr) {
+                console.warn("POST getStatsLogs failed:", postErr);
+              }
+            }
+
+            if (res && res.status === "success" && res.data) {
+              AppState.statsLogs = res.data.logs || [];
+              AppState.statsAvailableDates = res.data.available_dates || [];
+              AppState.statsTotalDays = res.data.total_inspection_days || 0;
+
+              if (!AppState.selectedStatsDate && AppState.statsAvailableDates.length > 0) {
+                AppState.selectedStatsDate = AppState.statsAvailableDates[0].date_str;
+              }
+            }
+          } else {
+            // Fallback กรณีโหมดทดสอบออฟไลน์
+            AppState.statsLogs = AppState.todaySummary || [];
+            const todayStr = new Date().toISOString().split("T")[0];
+            AppState.statsAvailableDates = [
+              {
+                date_str: todayStr,
+                thai_date: formatThaiDateShort(todayStr),
+                room_count: AppState.statsLogs.filter((l) => l.type === "room").length,
+                area_count: AppState.statsLogs.filter((l) => l.type === "area").length,
+                total_count: AppState.statsLogs.length,
+              },
+            ];
+            AppState.statsTotalDays = 1;
+            AppState.selectedStatsDate = todayStr;
+          }
+        } catch (err) {
+          console.error("Error loading stats data:", err);
+        } finally {
+          AppState.statsIsLoading = false;
+        }
+      }
+
+      /**
+       * กรองและจัดเรียงห้องเรียนตามระดับชั้น (ม.1 ถึง ม.6)
+       */
+      function getGradeClassrooms(gradeKey) {
+        const prefixMap = {
+          m1: "ม.1/",
+          m2: "ม.2/",
+          m3: "ม.3/",
+          m4: "ม.4/",
+          m5: "ม.5/",
+          m6: "ม.6/",
+        };
+        const prefix = prefixMap[gradeKey];
+        if (!prefix) return [];
+
+        return (AppState.classrooms || [])
+          .filter((c) => String(c.classroom || "").startsWith(prefix))
+          .sort((a, b) => {
+            const numA = parseInt(String(a.classroom || "").replace(prefix, ""), 10) || 0;
+            const numB = parseInt(String(b.classroom || "").replace(prefix, ""), 10) || 0;
+            return numA - numB;
+          });
+      }
+
+      /**
+       * คำนวณคะแนนห้องเรียนและเขตพื้นที่ตามเกณฑ์ (ทั้งโหมดรวมทั้งหมด และโหมดรายวัน)
+       * - ปัดเศษจำนวนเต็ม ไม่มีทศนิยม (0.5+ ปัดขึ้น)
+       * - โหมดรวมทั้งหมดจะนำ max_score * จำนวนวันบันทึกข้อมูล
+       */
+      function calculateClassroomStats(classroomObj, mode, selectedDate) {
+        const roomChecklists = (AppState.checklists || []).filter(
+          (c) => c.is_active && String(c.checklist_id).startsWith("room"),
+        );
+        const areaChecklists = (AppState.checklists || []).filter(
+          (c) => c.is_active && String(c.checklist_id).startsWith("area"),
+        );
+
+        const totalDays =
+          AppState.statsTotalDays ||
+          (AppState.statsAvailableDates ? AppState.statsAvailableDates.length : 1) ||
+          1;
+
+        const targetClassroom = String(classroomObj.classroom || "").trim();
+        const targetArea = String(classroomObj.area_id || "").trim();
+
+        if (mode === "all") {
+          // โหมดรวมทั้งหมด: ตัวคูณคะแนนเต็มตามจำนวนวันที่ตรวจจริง
+          const dayMultiplier = totalDays > 0 ? totalDays : 1;
+
+          // 1. คะแนนรายการห้องเรียน
+          const roomLogs = (AppState.statsLogs || []).filter(
+            (l) => l.type === "room" && String(l.target_id || "").trim() === targetClassroom,
+          );
+          const roomItemScores = {};
+          let totalRoomScore = 0;
+          let totalRoomMax = 0;
+          const hasRoomData = roomLogs.length > 0;
+
+          roomChecklists.forEach((ck) => {
+            let ckSum = 0;
+            let hasScore = false;
+            roomLogs.forEach((log) => {
+              const val = extractScoreFromLog(log.scores, ck.checklist_id);
+              if (val !== null) {
+                ckSum += val;
+                hasScore = true;
+              }
+            });
+            roomItemScores[ck.checklist_id] = hasScore ? Math.round(ckSum) : (hasRoomData ? 0 : null);
+            if (hasScore) totalRoomScore += ckSum;
+            totalRoomMax += Number(ck.max_score || 3) * dayMultiplier;
+          });
+
+          const roundedRoomScore = hasRoomData ? Math.round(totalRoomScore) : null;
+          const roomPercentage =
+            hasRoomData && totalRoomMax > 0
+              ? Math.round((roundedRoomScore / totalRoomMax) * 100)
+              : null;
+
+          // 2. คะแนนรายการเขตพื้นที่รับผิดชอบ
+          const areaLogs = (AppState.statsLogs || []).filter(
+            (l) => l.type === "area" && String(l.target_id || "").trim() === targetArea,
+          );
+          const areaItemScores = {};
+          let totalAreaScore = 0;
+          let totalAreaMax = 0;
+          const hasAreaData = areaLogs.length > 0;
+
+          areaChecklists.forEach((ack) => {
+            let ackSum = 0;
+            let hasScore = false;
+            areaLogs.forEach((log) => {
+              const val = extractScoreFromLog(log.scores, ack.checklist_id);
+              if (val !== null) {
+                ackSum += val;
+                hasScore = true;
+              }
+            });
+            areaItemScores[ack.checklist_id] = hasScore ? Math.round(ackSum) : (hasAreaData ? 0 : null);
+            if (hasScore) totalAreaScore += ackSum;
+            totalAreaMax += Number(ack.max_score || 3) * dayMultiplier;
+          });
+
+          const roundedAreaScore = hasAreaData ? Math.round(totalAreaScore) : null;
+          const areaPercentage =
+            hasAreaData && totalAreaMax > 0
+              ? Math.round((roundedAreaScore / totalAreaMax) * 100)
+              : null;
+
+          // 3. ผลรวมคะแนนทั้งหมด (ห้องเรียน + เขตพื้นที่)
+          const hasAnyData = hasRoomData || hasAreaData;
+          let overallScore = null;
+          if (hasAnyData) {
+            overallScore = (roundedRoomScore || 0) + (roundedAreaScore || 0);
+          }
+          const overallMax = totalRoomMax + totalAreaMax;
+          const overallPercentage =
+            overallScore !== null && overallMax > 0
+              ? Math.round((overallScore / overallMax) * 100)
+              : null;
+
+          return {
+            hasData: hasAnyData,
+            hasRoomData,
+            hasAreaData,
+            roomItemScores,
+            roomScore: roundedRoomScore,
+            roomMax: totalRoomMax,
+            roomPercentage,
+            areaItemScores,
+            areaScore: roundedAreaScore,
+            areaMax: totalAreaMax,
+            areaPercentage,
+            overallScore,
+            overallMax,
+            overallPercentage,
+          };
+        } else {
+          // โหมดรายวัน (Daily Mode)
+          const cleanSelectedDate = String(selectedDate || "").trim().slice(0, 10);
+
+          const roomLog = (AppState.statsLogs || []).find(
+            (l) =>
+              l.type === "room" &&
+              String(l.target_id || "").trim() === targetClassroom &&
+              String(l.date_str || "").trim().slice(0, 10) === cleanSelectedDate,
+          );
+          const areaLog = (AppState.statsLogs || []).find(
+            (l) =>
+              l.type === "area" &&
+              String(l.target_id || "").trim() === targetArea &&
+              String(l.date_str || "").trim().slice(0, 10) === cleanSelectedDate,
+          );
+
+          // 1. คะแนนรายการห้องเรียน
+          const roomItemScores = {};
+          let totalRoomScore = 0;
+          let totalRoomMax = 0;
+          const hasRoomData = !!roomLog;
+
+          roomChecklists.forEach((ck) => {
+            if (hasRoomData) {
+              const val = extractScoreFromLog(roomLog.scores, ck.checklist_id);
+              roomItemScores[ck.checklist_id] = val !== null ? Math.round(val) : 0;
+              if (val !== null) totalRoomScore += val;
+            } else {
+              roomItemScores[ck.checklist_id] = null;
+            }
+            totalRoomMax += Number(ck.max_score || 3);
+          });
+
+          const roundedRoomScore = hasRoomData
+            ? roomLog.total_score !== undefined && roomLog.total_score !== null
+              ? Math.round(Number(roomLog.total_score))
+              : Math.round(totalRoomScore)
+            : null;
+          const roomPercentage =
+            hasRoomData && totalRoomMax > 0
+              ? roomLog.percentage !== undefined && roomLog.percentage !== null
+                ? Math.round(Number(roomLog.percentage))
+                : Math.round((roundedRoomScore / totalRoomMax) * 100)
+              : null;
+
+          // 2. คะแนนรายการเขตพื้นที่
+          const areaItemScores = {};
+          let totalAreaScore = 0;
+          let totalAreaMax = 0;
+          const hasAreaData = !!areaLog;
+
+          areaChecklists.forEach((ack) => {
+            if (hasAreaData) {
+              const val = extractScoreFromLog(areaLog.scores, ack.checklist_id);
+              areaItemScores[ack.checklist_id] = val !== null ? Math.round(val) : 0;
+              if (val !== null) totalAreaScore += val;
+            } else {
+              areaItemScores[ack.checklist_id] = null;
+            }
+            totalAreaMax += Number(ack.max_score || 3);
+          });
+
+          const roundedAreaScore = hasAreaData
+            ? areaLog.total_score !== undefined && areaLog.total_score !== null
+              ? Math.round(Number(areaLog.total_score))
+              : Math.round(totalAreaScore)
+            : null;
+          const areaPercentage =
+            hasAreaData && totalAreaMax > 0
+              ? areaLog.percentage !== undefined && areaLog.percentage !== null
+                ? Math.round(Number(areaLog.percentage))
+                : Math.round((roundedAreaScore / totalAreaMax) * 100)
+              : null;
+
+          // 3. ผลรวมคะแนนทั้งหมด
+          const hasAnyData = hasRoomData || hasAreaData;
+          let overallScore = null;
+          if (hasAnyData) {
+            overallScore = (roundedRoomScore || 0) + (roundedAreaScore || 0);
+          }
+          const overallMax = totalRoomMax + totalAreaMax;
+          const overallPercentage =
+            overallScore !== null && overallMax > 0
+              ? Math.round((overallScore / overallMax) * 100)
+              : null;
+
+          return {
+            hasData: hasAnyData,
+            hasRoomData,
+            hasAreaData,
+            roomItemScores,
+            roomScore: roundedRoomScore,
+            roomMax: totalRoomMax,
+            roomPercentage,
+            areaItemScores,
+            areaScore: roundedAreaScore,
+            areaMax: totalAreaMax,
+            areaPercentage,
+            overallScore,
+            overallMax,
+            overallPercentage,
+          };
+        }
+      }
+
+      function handleStatsModeChange(mode) {
+        AppState.statsMode = mode;
+        renderStatsTab();
+      }
+
+      function handleStatsDateChange(dateStr) {
+        AppState.selectedStatsDate = dateStr;
+        renderStatsTab();
+      }
+
+      function handleGradeFilterChange(gradeKey) {
+        AppState.selectedGradeFilter = gradeKey;
+        renderStatsTab();
+      }
+
+      async function handleReloadStats() {
+        const icon = document.getElementById("statsReloadIcon");
+        if (icon) icon.classList.add("animate-spin");
+        try {
+          await loadStatsData(true);
+          renderStatsTab();
+          await swalShowSuccess("อัปเดตข้อมูลสถิติล่าสุดแล้ว", "", 1000);
+        } finally {
+          if (icon) icon.classList.remove("animate-spin");
+        }
+      }
+
+      function renderStatsTabSkeleton() {
         const container = document.getElementById("statsContainer");
         if (!container) return;
 
-        const roomLogs = AppState.todaySummary.filter((l) => l.type === "room");
-        const sortedRooms = [...AppState.classrooms]
-          .map((c) => {
-            const log = roomLogs.find((l) => l.target_id === c.classroom);
-            return {
-              classroom: c.classroom,
-              advisors: c.advisors,
-              percentage: log ? Number(log.percentage) : -1,
-              total_score: log ? log.total_score : 0,
-              max_score: log ? log.max_score : 0,
-            };
-          })
-          .sort((a, b) => b.percentage - a.percentage);
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="h-32 bg-slate-200 rounded-2xl skeleton-shimmer"></div>
+            <div class="h-20 bg-slate-200 rounded-2xl skeleton-shimmer"></div>
+            <div class="space-y-6">
+              <div class="h-64 bg-slate-100 rounded-2xl border border-slate-200 skeleton-shimmer"></div>
+              <div class="h-64 bg-slate-100 rounded-2xl border border-slate-200 skeleton-shimmer"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      async function renderStatsTab() {
+        const container = document.getElementById("statsContainer");
+        if (!container) return;
+
+        // Auto load stats data from backend if empty
+        if (AppState.statsLogs.length === 0 && !AppState.statsIsLoading) {
+          renderStatsTabSkeleton();
+          await loadStatsData();
+        }
+
+        const mode = AppState.statsMode || "all";
+        const totalDays = AppState.statsTotalDays || (AppState.statsAvailableDates ? AppState.statsAvailableDates.length : 0);
+        const availableDates = AppState.statsAvailableDates || [];
+        const selectedDate = AppState.selectedStatsDate || (availableDates.length > 0 ? availableDates[0].date_str : "");
+        const gradeFilter = AppState.selectedGradeFilter || "all";
+
+        // Active Checklists
+        const roomChecklists = (AppState.checklists || []).filter(
+          (c) => c.is_active && String(c.checklist_id).startsWith("room"),
+        );
+        const areaChecklists = (AppState.checklists || []).filter(
+          (c) => c.is_active && String(c.checklist_id).startsWith("area"),
+        );
+
+        // Day multiplier for max score baseline
+        const dayMultiplier = mode === "all" ? (totalDays > 0 ? totalDays : 1) : 1;
+        const totalBaseRoomMax = roomChecklists.reduce((sum, ck) => sum + Number(ck.max_score || 3), 0) * dayMultiplier;
+        const totalBaseAreaMax = areaChecklists.reduce((sum, ack) => sum + Number(ack.max_score || 3), 0) * dayMultiplier;
+        const totalBaseOverallMax = totalBaseRoomMax + totalBaseAreaMax;
+
+        // Grade definitions: Junior (Green theme) vs Senior (Yellow/Amber theme)
+        const gradesConfig = [
+          {
+            key: "m1",
+            name: "มัธยมศึกษาปีที่ 1 (ม.1)",
+            short: "ม.1",
+            level: "junior",
+            bannerBg: "bg-gradient-to-r from-emerald-800 to-teal-800",
+            badgeBg: "bg-emerald-100 text-emerald-800 border-emerald-300",
+            cardBorder: "border-emerald-300",
+            roomGroupBg: "bg-emerald-700",
+            areaGroupBg: "bg-teal-700",
+            roomSubHeaderBg: "bg-emerald-50 text-emerald-950",
+            areaSubHeaderBg: "bg-teal-50 text-teal-950",
+            roomTotalBg: "bg-emerald-50/70 text-emerald-900",
+            areaTotalBg: "bg-teal-50/70 text-teal-900",
+            baselineBg: "bg-emerald-100/80 text-emerald-950",
+          },
+          {
+            key: "m2",
+            name: "มัธยมศึกษาปีที่ 2 (ม.2)",
+            short: "ม.2",
+            level: "junior",
+            bannerBg: "bg-gradient-to-r from-emerald-800 to-teal-800",
+            badgeBg: "bg-emerald-100 text-emerald-800 border-emerald-300",
+            cardBorder: "border-emerald-300",
+            roomGroupBg: "bg-emerald-700",
+            areaGroupBg: "bg-teal-700",
+            roomSubHeaderBg: "bg-emerald-50 text-emerald-950",
+            areaSubHeaderBg: "bg-teal-50 text-teal-950",
+            roomTotalBg: "bg-emerald-50/70 text-emerald-900",
+            areaTotalBg: "bg-teal-50/70 text-teal-900",
+            baselineBg: "bg-emerald-100/80 text-emerald-950",
+          },
+          {
+            key: "m3",
+            name: "มัธยมศึกษาปีที่ 3 (ม.3)",
+            short: "ม.3",
+            level: "junior",
+            bannerBg: "bg-gradient-to-r from-emerald-800 to-teal-800",
+            badgeBg: "bg-emerald-100 text-emerald-800 border-emerald-300",
+            cardBorder: "border-emerald-300",
+            roomGroupBg: "bg-emerald-700",
+            areaGroupBg: "bg-teal-700",
+            roomSubHeaderBg: "bg-emerald-50 text-emerald-950",
+            areaSubHeaderBg: "bg-teal-50 text-teal-950",
+            roomTotalBg: "bg-emerald-50/70 text-emerald-900",
+            areaTotalBg: "bg-teal-50/70 text-teal-900",
+            baselineBg: "bg-emerald-100/80 text-emerald-950",
+          },
+          {
+            key: "m4",
+            name: "มัธยมศึกษาปีที่ 4 (ม.4)",
+            short: "ม.4",
+            level: "senior",
+            bannerBg: "bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700",
+            badgeBg: "bg-amber-100 text-amber-900 border-amber-300",
+            cardBorder: "border-amber-300",
+            roomGroupBg: "bg-amber-600",
+            areaGroupBg: "bg-orange-600",
+            roomSubHeaderBg: "bg-amber-50 text-amber-950",
+            areaSubHeaderBg: "bg-orange-50 text-orange-950",
+            roomTotalBg: "bg-amber-50/70 text-amber-900",
+            areaTotalBg: "bg-orange-50/70 text-orange-900",
+            baselineBg: "bg-amber-100/80 text-amber-950",
+          },
+          {
+            key: "m5",
+            name: "มัธยมศึกษาปีที่ 5 (ม.5)",
+            short: "ม.5",
+            level: "senior",
+            bannerBg: "bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700",
+            badgeBg: "bg-amber-100 text-amber-900 border-amber-300",
+            cardBorder: "border-amber-300",
+            roomGroupBg: "bg-amber-600",
+            areaGroupBg: "bg-orange-600",
+            roomSubHeaderBg: "bg-amber-50 text-amber-950",
+            areaSubHeaderBg: "bg-orange-50 text-orange-950",
+            roomTotalBg: "bg-amber-50/70 text-amber-900",
+            areaTotalBg: "bg-orange-50/70 text-orange-900",
+            baselineBg: "bg-amber-100/80 text-amber-950",
+          },
+          {
+            key: "m6",
+            name: "มัธยมศึกษาปีที่ 6 (ม.6)",
+            short: "ม.6",
+            level: "senior",
+            bannerBg: "bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700",
+            badgeBg: "bg-amber-100 text-amber-900 border-amber-300",
+            cardBorder: "border-amber-300",
+            roomGroupBg: "bg-amber-600",
+            areaGroupBg: "bg-orange-600",
+            roomSubHeaderBg: "bg-amber-50 text-amber-950",
+            areaSubHeaderBg: "bg-orange-50 text-orange-950",
+            roomTotalBg: "bg-amber-50/70 text-amber-900",
+            areaTotalBg: "bg-orange-50/70 text-orange-900",
+            baselineBg: "bg-amber-100/80 text-amber-950",
+          },
+        ];
+
+        // Filter grades to display
+        const visibleGrades =
+          gradeFilter === "all"
+            ? gradesConfig
+            : gradesConfig.filter((g) => g.key === gradeFilter);
 
         container.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div>
-              <h2 class="text-xl font-bold text-slate-800">อันดับสถิติความสะอาดห้องเรียน</h2>
-              <p class="text-xs text-slate-500">จัดอันดับตามคะแนนประเมินประจำวัน</p>
+        <div class="space-y-6">
+
+          <!-- Dedicated Print Report Header (Visible only when printed on A4) -->
+          <div class="print-only text-center mb-5 space-y-1">
+            <h1 class="text-xl font-bold text-black tracking-tight">
+              ${AppState.settings.school_name || "โรงเรียนประชาสงเคราะห์วิทยา"}
+            </h1>
+            <h2 class="text-base font-bold text-black">
+              รายงานสรุปผลการประเมินความสะอาดห้องเรียนและเขตพื้นที่รับผิดชอบ
+            </h2>
+            <div class="py-1 px-4 border-y border-black inline-block font-bold text-sm text-black mt-1 mb-2">
+              ${
+                mode === "all"
+                  ? `รวมข้อมูลคะแนนความสะอาดห้องเรียนและเขตพื้นที่รับผิดชอบ จากข้อมูลทั้งหมด ${totalDays} วัน`
+                  : `ข้อมูลคะแนนความสะอาดห้องเรียนและเขตพื้นที่รับผิดชอบ ของ${formatThaiDateFull(selectedDate)}`
+              }
             </div>
-            <span class="px-3 py-1 bg-cyan-50 text-cyan-700 text-xs font-bold rounded-xl border border-cyan-200">
-              ประจำวัน
-            </span>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${sortedRooms
-              .map((r, idx) => {
-                const isChecked = r.percentage >= 0;
-                return `
-                <div class="p-4 rounded-xl border ${idx === 0 && isChecked ? "border-amber-400 bg-amber-50/40 shadow-sm" : "border-slate-200 bg-slate-50/50"} space-y-3">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                      <span class="w-7 h-7 rounded-lg ${idx === 0 && isChecked ? "bg-amber-500 text-white font-black" : "bg-slate-200 text-slate-700 font-bold"} text-xs flex items-center justify-center">
-                        ${idx + 1}
-                      </span>
-                      <h4 class="font-bold text-slate-800">ห้อง ${r.classroom}</h4>
-                    </div>
-                    ${
-                      isChecked
-                        ? `
-                      <span class="text-xs font-bold px-2 py-0.5 rounded-md ${getScoreBadgeStyle(r.percentage)}">
-                        ${r.percentage}%
-                      </span>
-                    `
-                        : `
-                      <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-400">
-                        ยังไม่ได้ตรวจ
-                      </span>
-                    `
-                    }
-                  </div>
-                  <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                    <div class="${r.percentage >= 80 ? "bg-emerald-500" : r.percentage >= 65 ? "bg-blue-500" : "bg-amber-500"} h-2 rounded-full" style="width: ${isChecked ? r.percentage : 0}%"></div>
-                  </div>
+          <!-- 1. Header Banner Card (Screen Only) -->
+          <div class="no-print bg-gradient-to-r from-teal-800 via-emerald-800 to-slate-900 rounded-2xl text-white p-6 shadow-lg relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner border border-white/20">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
                 </div>
-              `;
-              })
-              .join("")}
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight">สถิติความสะอาดห้องเรียน</h2>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/50 text-emerald-100 font-semibold border border-emerald-400/40">
+                      RANKING & STATS
+                    </span>
+                  </div>
+                  <p class="text-xs sm:text-sm text-emerald-100 mt-0.5">
+                    ตารางสรุปคะแนนประเมินความสะอาดตามเกณฑ์มาตรฐาน แยกตามระดับชั้น ม.1 - ม.6
+                  </p>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onclick="handleReloadStats()"
+                  class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition flex items-center space-x-1.5 shadow-sm"
+                  title="รีโหลดข้อมูลสถิติใหม่จากชีต"
+                >
+                  <svg id="statsReloadIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>รีโหลด</span>
+                </button>
+                <button
+                  type="button"
+                  onclick="exportStatsToCSV()"
+                  class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 shadow-md transition transform active:scale-98 flex items-center space-x-1.5"
+                  title="ดาวน์โหลดตารางสถิติเป็นไฟล์ Excel (.csv)"
+                >
+                  <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>ส่งออก CSV</span>
+                </button>
+                <button
+                  type="button"
+                  onclick="window.print()"
+                  class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-emerald-800 hover:bg-emerald-50 shadow-md transition transform active:scale-98 flex items-center space-x-1.5"
+                >
+                  <svg class="w-4 h-4 text-emerald-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  <span>พิมพ์รายงาน</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Controls Bar: Mode Switcher & Date Selector (Screen Only) -->
+          <div class="no-print bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              
+              <!-- Mode Selection (All Time vs Daily) -->
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="text-xs font-bold text-slate-700">รูปแบบการแสดงผล:</span>
+                <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onclick="handleStatsModeChange('all')"
+                    class="px-4 py-2 rounded-lg transition flex items-center space-x-1.5 ${mode === "all" ? "bg-emerald-600 text-white shadow font-bold" : "text-slate-600 hover:text-slate-800"}"
+                  >
+                    <span>📊 รวมทั้งหมด</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick="handleStatsModeChange('daily')"
+                    class="px-4 py-2 rounded-lg transition flex items-center space-x-1.5 ${mode === "daily" ? "bg-blue-600 text-white shadow font-bold" : "text-slate-600 hover:text-slate-800"}"
+                  >
+                    <span>🗓️ แบบรายวัน</span>
+                  </button>
+                </div>
+
+                <!-- Info Badge for "All Time" Mode -->
+                ${
+                  mode === "all"
+                    ? `
+                  <div class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-xs animate-fadeIn">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>รวมข้อมูลทั้งหมด <u>${totalDays}</u> วัน</span>
+                    <span class="text-[11px] font-normal text-emerald-600 ml-1">(คะแนนเต็มคำนวณตามจำนวนวัน)</span>
+                  </div>
+                `
+                    : ""
+                }
+              </div>
+
+              <!-- Date Selector (Only shown when mode === 'daily') -->
+              ${
+                mode === "daily"
+                  ? `
+                <div class="flex items-center space-x-2 animate-fadeIn">
+                  <label class="text-xs font-bold text-slate-700 whitespace-nowrap">เลือกวันที่:</label>
+                  <select
+                    onchange="handleStatsDateChange(this.value)"
+                    class="text-xs sm:text-sm py-2 px-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 font-semibold text-slate-800 cursor-pointer shadow-xs transition"
+                  >
+                    ${
+                      availableDates.length === 0
+                        ? '<option value="">ยังไม่มีประวัติการตรวจในระบบ</option>'
+                        : availableDates
+                            .map(
+                              (d) => `
+                        <option value="${d.date_str}" ${d.date_str === selectedDate ? "selected" : ""}>
+                          📅 ${d.full_thai_date || d.thai_date} (${d.room_count} ห้อง, ${d.area_count} เขต)
+                        </option>
+                      `,
+                            )
+                            .join("")
+                    }
+                  </select>
+                </div>
+              `
+                  : ""
+              }
+            </div>
+
+            <!-- Grade Quick-Jump Navigation Tabs -->
+            <div class="pt-3 border-t border-slate-100 flex items-center space-x-1.5 overflow-x-auto pb-1 text-xs">
+              <span class="text-slate-400 font-medium mr-1 whitespace-nowrap">ระดับชั้น:</span>
+              <button
+                type="button"
+                onclick="handleGradeFilterChange('all')"
+                class="px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${gradeFilter === "all" ? "bg-slate-800 text-white shadow-xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}"
+              >
+                ทั้งหมด (ม.1 - ม.6)
+              </button>
+              ${gradesConfig
+                .map(
+                  (g) => `
+                <button
+                  type="button"
+                  onclick="handleGradeFilterChange('${g.key}')"
+                  class="px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${
+                    gradeFilter === g.key
+                      ? g.level === "junior"
+                        ? "bg-emerald-600 text-white shadow-xs"
+                        : "bg-amber-600 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }"
+                >
+                  ${g.short}
+                </button>
+              `,
+                )
+                .join("")}
+            </div>
+          </div>
+
+          <!-- 3. Multi-Level Tables: 6 Grades (M.1 - M.6) -->
+          <div class="space-y-8">
+            ${
+              visibleGrades.length === 0
+                ? `
+              <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
+                <p>ไม่พบข้อมูลห้องเรียนในระดับชั้นนี้</p>
+              </div>
+            `
+                : visibleGrades
+                    .map((grade) => {
+                      const classrooms = getGradeClassrooms(grade.key);
+                      if (classrooms.length === 0) return "";
+
+                      return `
+                  <!-- Grade Table Card: ${grade.name} -->
+                  <div id="grade-card-${grade.key}" class="bg-white rounded-2xl border ${grade.cardBorder} shadow-sm overflow-hidden transition hover:shadow-md">
+                    
+                    <!-- Table Header Banner -->
+                    <div class="${grade.bannerBg} text-white px-5 py-3.5 flex items-center justify-between">
+                      <div class="flex items-center space-x-2.5">
+                        <span class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-sm">
+                          ${grade.short}
+                        </span>
+                        <h3 class="text-base sm:text-lg font-bold tracking-tight">${grade.name}</h3>
+                      </div>
+                      <span class="text-xs px-3 py-1 rounded-full ${grade.badgeBg} font-bold shadow-xs">
+                        ${classrooms.length} ห้องเรียน
+                      </span>
+                    </div>
+
+                    <!-- Responsive Multi-Level Table (Matching Design Mockup) -->
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-center border-collapse border border-slate-300 text-xs sm:text-sm">
+                        
+                        <!-- Table Head: Multi-Level Header -->
+                        <thead>
+                          <!-- Header Row 1: Groups -->
+                          <tr class="text-white font-bold">
+                            <th rowspan="2" class="border border-slate-400 px-3 py-2.5 bg-slate-700 text-white font-bold whitespace-nowrap min-w-[70px]">
+                              ห้องเรียน
+                            </th>
+                            <th colspan="${roomChecklists.length}" class="border border-slate-400 px-3 py-2 ${grade.roomGroupBg} text-white font-bold tracking-wide">
+                              คะแนนความสะอาดห้องเรียน
+                            </th>
+                            <th rowspan="2" class="border border-slate-400 px-2.5 py-2 ${grade.roomGroupBg} text-white font-bold whitespace-nowrap leading-snug">
+                              รวมคะแนน<br/><span class="text-[11px] font-normal">ห้องเรียน</span>
+                            </th>
+                            <th colspan="${areaChecklists.length}" class="border border-slate-400 px-3 py-2 ${grade.areaGroupBg} text-white font-bold tracking-wide">
+                              คะแนนเขตพื้นที่รับผิดชอบ
+                            </th>
+                            <th rowspan="2" class="border border-slate-400 px-2.5 py-2 ${grade.areaGroupBg} text-white font-bold whitespace-nowrap leading-snug">
+                              รวมคะแนน<br/><span class="text-[11px] font-normal">เขตพื้นที่</span>
+                            </th>
+                            <th rowspan="2" class="border border-slate-400 px-3 py-2 bg-slate-800 text-white font-black whitespace-nowrap leading-snug min-w-[65px]">
+                              รวม<br/>คะแนน
+                            </th>
+                            <th rowspan="2" class="border border-slate-400 px-3 py-2 bg-slate-900 text-white font-black whitespace-nowrap min-w-[60px]">
+                              ร้อยละ
+                            </th>
+                          </tr>
+
+                          <!-- Header Row 2: Individual Checklist Items -->
+                          <tr class="font-semibold text-slate-800 text-[11px] sm:text-xs">
+                            ${
+                              roomChecklists.length === 0
+                                ? '<th class="border border-slate-400 px-2 py-2 text-slate-400">ไม่มีรายการตรวจ</th>'
+                                : roomChecklists
+                                    .map(
+                                      (ck) => `
+                                  <th class="border border-slate-400 px-2 py-2 ${grade.roomSubHeaderBg} font-bold max-w-[130px] leading-tight">
+                                    ${ck.checklist_name}
+                                  </th>
+                                `,
+                                    )
+                                    .join("")
+                            }
+                            ${
+                              areaChecklists.length === 0
+                                ? '<th class="border border-slate-400 px-2 py-2 text-slate-400">ไม่มีรายการตรวจ</th>'
+                                : areaChecklists
+                                    .map(
+                                      (ack) => `
+                                  <th class="border border-slate-400 px-2 py-2 ${grade.areaSubHeaderBg} font-bold max-w-[130px] leading-tight">
+                                    ${ack.checklist_name}
+                                  </th>
+                                `,
+                                    )
+                                    .join("")
+                            }
+                          </tr>
+
+                          <!-- Header Row 3: Max Score Baseline Row -->
+                          <tr class="${grade.baselineBg} font-bold text-xs">
+                            <td class="border border-slate-400 px-2 py-1.5 font-bold whitespace-nowrap">คะแนนเต็ม</td>
+                            ${roomChecklists
+                              .map(
+                                (ck) => `
+                              <td class="border border-slate-400 px-1 py-1.5 font-extrabold">${Number(ck.max_score || 3) * dayMultiplier}</td>
+                            `,
+                              )
+                              .join("")}
+                            <td class="border border-slate-400 px-1 py-1.5 font-black whitespace-nowrap">${totalBaseRoomMax}</td>
+                            ${areaChecklists
+                              .map(
+                                (ack) => `
+                              <td class="border border-slate-400 px-1 py-1.5 font-extrabold">${Number(ack.max_score || 3) * dayMultiplier}</td>
+                            `,
+                              )
+                              .join("")}
+                            <td class="border border-slate-400 px-1 py-1.5 font-black whitespace-nowrap">${totalBaseAreaMax}</td>
+                            <td class="border border-slate-400 px-1 py-1.5 font-black whitespace-nowrap">${totalBaseOverallMax}</td>
+                            <td class="border border-slate-400 px-1 py-1.5 font-black whitespace-nowrap">100%</td>
+                          </tr>
+                        </thead>
+
+                        <!-- Table Body: Data Rows for each Classroom -->
+                        <tbody class="divide-y divide-slate-300 bg-white font-medium text-slate-800">
+                          ${classrooms
+                            .map((c) => {
+                              const stats = calculateClassroomStats(c, mode, selectedDate);
+
+                              // Color styling for Overall Percentage
+                              let badgeColor = "bg-slate-100 text-slate-400";
+                              if (stats.overallPercentage !== null) {
+                                if (stats.overallPercentage >= 80) badgeColor = "bg-emerald-100 text-emerald-800 font-black";
+                                else if (stats.overallPercentage >= 65) badgeColor = "bg-blue-100 text-blue-800 font-black";
+                                else if (stats.overallPercentage >= 50) badgeColor = "bg-amber-100 text-amber-900 font-black";
+                                else badgeColor = "bg-red-100 text-red-800 font-black";
+                              }
+
+                              return `
+                            <tr class="hover:bg-slate-50 transition duration-150">
+                              
+                              <!-- 1. Classroom ID -->
+                              <td class="border border-slate-400 px-2 py-2 font-bold font-mono text-slate-900 bg-slate-50 whitespace-nowrap">
+                                ${c.classroom}
+                              </td>
+
+                              <!-- 2. Room Item Scores -->
+                              ${roomChecklists
+                                .map((ck) => {
+                                  const val = stats.roomItemScores[ck.checklist_id];
+                                  return `
+                                  <td class="border border-slate-400 px-1 py-2 ${val !== null ? "font-semibold text-slate-800" : "text-slate-300 font-light"}">
+                                    ${val !== null ? val : "-"}
+                                  </td>
+                                `;
+                                })
+                                .join("")}
+
+                              <!-- 3. Room Total Score & % -->
+                              <td class="border border-slate-400 px-2 py-2 font-bold whitespace-nowrap ${grade.roomTotalBg}">
+                                ${
+                                  stats.roomScore !== null
+                                    ? `<span>${stats.roomScore}</span> <span class="text-[11px] font-normal text-slate-600">(${stats.roomPercentage}%)</span>`
+                                    : '<span class="text-slate-300 font-light">-</span>'
+                                }
+                              </td>
+
+                              <!-- 4. Area Item Scores -->
+                              ${areaChecklists
+                                .map((ack) => {
+                                  const val = stats.areaItemScores[ack.checklist_id];
+                                  return `
+                                  <td class="border border-slate-400 px-1 py-2 ${val !== null ? "font-semibold text-slate-800" : "text-slate-300 font-light"}">
+                                    ${val !== null ? val : "-"}
+                                  </td>
+                                `;
+                                })
+                                .join("")}
+
+                              <!-- 5. Area Total Score & % -->
+                              <td class="border border-slate-400 px-2 py-2 font-bold whitespace-nowrap ${grade.areaTotalBg}">
+                                ${
+                                  stats.areaScore !== null
+                                    ? `<span>${stats.areaScore}</span> <span class="text-[11px] font-normal text-slate-600">(${stats.areaPercentage}%)</span>`
+                                    : '<span class="text-slate-300 font-light">-</span>'
+                                }
+                              </td>
+
+                              <!-- 6. Grand Total Score -->
+                              <td class="border border-slate-400 px-2 py-2 font-black text-slate-900 bg-slate-100/60 whitespace-nowrap">
+                                ${stats.overallScore !== null ? stats.overallScore : '<span class="text-slate-300 font-light">-</span>'}
+                              </td>
+
+                              <!-- 7. Grand Total Percentage -->
+                              <td class="border border-slate-400 px-2 py-2 whitespace-nowrap ${badgeColor}">
+                                ${stats.overallPercentage !== null ? `${stats.overallPercentage}%` : '<span class="text-slate-300 font-light">-</span>'}
+                              </td>
+                            </tr>
+                          `;
+                            })
+                            .join("")}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                `;
+                    })
+                    .join("")
+            }
           </div>
         </div>
-      `;
+        `;
       }
 
       function renderSystemSettingsTab() {
@@ -4685,12 +6140,22 @@
                               : "bg-emerald-100 text-emerald-800 border border-emerald-200";
 
                             // Area display
-                            const areaObj = (AppState.areas || []).find(
-                              (a) => a.area_id === c.area_id,
-                            );
-                            const areaName = areaObj
-                              ? areaObj.area_name
-                              : c.area_id;
+                            const hasArea = c.area_id && String(c.area_id).trim() !== "";
+                            let areaDisplayHtml = '<span class="text-xs text-slate-400 italic">ไม่ได้ระบุเขตพื้นที่</span>';
+                            if (hasArea) {
+                              const areaObj = (AppState.areas || []).find(
+                                (a) => a.area_id === c.area_id,
+                              );
+                              const areaName = areaObj
+                                ? areaObj.area_name
+                                : c.area_id;
+                              areaDisplayHtml = `
+                                <div class="flex items-center space-x-1.5">
+                                  <span class="font-semibold text-slate-800 text-xs sm:text-sm">${areaName}</span>
+                                  <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${c.area_id}</span>
+                                </div>
+                              `;
+                            }
 
                             // Advisors chips
                             let advisorsList = [];
@@ -4708,10 +6173,7 @@
                           </span>
                         </td>
                         <td class="py-3.5 px-4">
-                          <div class="flex items-center space-x-1.5">
-                            <span class="font-semibold text-slate-800 text-xs sm:text-sm">${areaName}</span>
-                            <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${c.area_id}</span>
-                          </div>
+                          ${areaDisplayHtml}
                         </td>
                         <td class="py-3.5 px-4">
                           <div class="flex flex-wrap gap-1.5">
@@ -4876,7 +6338,7 @@
         if (!areaSelect) return;
 
         areaSelect.innerHTML =
-          '<option value="">-- กรุณาเลือกเขตพื้นที่รับผิดชอบ --</option>';
+          '<option value="">-- ไม่ระบุเขตพื้นที่รับผิดชอบ (เว้นว่าง) --</option>';
 
         const areas = AppState.areas || [];
         areas.forEach((a) => {
@@ -5041,6 +6503,12 @@
         const textEl = document.getElementById("areaDuplicateText");
         if (!areaSelect) return;
 
+        const val = areaSelect.value;
+        if (!val) {
+          if (alertEl) alertEl.classList.add("hidden");
+          return;
+        }
+
         const selectedOpt = areaSelect.options[areaSelect.selectedIndex];
         const assignedRoom = selectedOpt
           ? selectedOpt.dataset.assignedRoom
@@ -5064,7 +6532,7 @@
           const grade = document.getElementById("classroomGradeSelect").value;
           const room = document.getElementById("classroomRoomSelect").value;
           const areaSelect = document.getElementById("classroomAreaSelect");
-          const areaId = areaSelect ? areaSelect.value : "";
+          const areaId = areaSelect ? areaSelect.value.trim() : "";
           const container = document.getElementById("advisorSlotsContainer");
 
           const classroom = `${grade}/${room}`;
@@ -5092,24 +6560,20 @@
             return;
           }
 
-          // Validate Area
-          if (!areaId) {
-            swalShowWarning(
-              "กรุณาเลือกเขตพื้นที่",
-              "ต้องระบุเขตพื้นที่รับผิดชอบประจำห้องเรียน",
-            );
-            return;
-          }
-          const selectedOpt = areaSelect.options[areaSelect.selectedIndex];
-          const assignedRoom = selectedOpt
-            ? selectedOpt.dataset.assignedRoom
-            : "";
-          if (assignedRoom && assignedRoom !== oldClassroom) {
-            swalShowWarning(
-              "เขตพื้นที่ซ้ำ",
-              `เขตพื้นที่นี้ถูกผูกไว้กับห้อง ${assignedRoom} แล้ว (ห้ามซ้ำกัน)`,
-            );
-            return;
+          // Validate Area (Optional)
+          let selectedOpt = null;
+          if (areaId && areaSelect) {
+            selectedOpt = areaSelect.options[areaSelect.selectedIndex];
+            const assignedRoom = selectedOpt
+              ? selectedOpt.dataset.assignedRoom
+              : "";
+            if (assignedRoom && assignedRoom !== oldClassroom) {
+              swalShowWarning(
+                "เขตพื้นที่ซ้ำ",
+                `เขตพื้นที่นี้ถูกผูกไว้กับห้อง ${assignedRoom} แล้ว (ห้ามซ้ำกัน)`,
+              );
+              return;
+            }
           }
 
           // Validate Advisors
@@ -5139,6 +6603,12 @@
             return;
           }
 
+          const areaDisplayName = areaId
+            ? selectedOpt
+              ? selectedOpt.text.replace(/\(⚠️.*\)/, "").trim()
+              : areaId
+            : '<span class="text-slate-400 font-normal italic">ไม่ระบุ (เว้นว่าง)</span>';
+
           const confirmResult = await swalCustom().fire({
             title:
               mode === "create"
@@ -5147,7 +6617,7 @@
             html: `
               <div class="text-left text-sm space-y-1.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <div>🏫 <b>ห้องเรียน:</b> ${classroom}</div>
-                <div>📍 <b>เขตพื้นที่:</b> ${selectedOpt ? selectedOpt.text.replace(/\(⚠️.*\)/, "") : areaId}</div>
+                <div>📍 <b>เขตพื้นที่:</b> ${areaDisplayName}</div>
                 <div>👥 <b>ครูที่ปรึกษา:</b> ${advisors.join(", ")}</div>
               </div>
             `,
@@ -6240,49 +7710,925 @@
         }
       }
 
+      // =================================================================
+      // 13. USER MANAGEMENT ENGINE & MODAL LOGIC (USERS TAB)
+      // =================================================================
+
       function renderUserSettingsTab() {
         const container = document.getElementById("userSettingsContainer");
         if (!container) return;
 
+        const allUsers = AppState.users || [];
+        const teacherCount = allUsers.filter((u) => u.role === "teacher").length;
+        const inspectorCount = allUsers.filter((u) => u.role === "Inspector").length;
+        const activeCount = allUsers.filter((u) => u.is_active).length;
+
+        // Filtering logic
+        const searchTerm = (AppState.userSearchTerm || "").toLowerCase().trim();
+        const roleFilter = AppState.userRoleFilter || "all";
+        const statusFilter = AppState.userStatusFilter || "all";
+
+        const filteredUsers = allUsers.filter((u) => {
+          // Search query matching
+          if (searchTerm) {
+            const idMatch = String(u.user_id || "").toLowerCase().includes(searchTerm);
+            const nameMatch = String(u.full_name || "").toLowerCase().includes(searchTerm);
+            const roleMatch = String(u.role || "").toLowerCase().includes(searchTerm);
+            const roomsStr = Array.isArray(u.allowed_rooms) ? u.allowed_rooms.join(" ") : String(u.allowed_rooms || "");
+            const areasStr = Array.isArray(u.allowed_areas) ? u.allowed_areas.join(" ") : String(u.allowed_areas || "");
+            const permMatch = roomsStr.toLowerCase().includes(searchTerm) || areasStr.toLowerCase().includes(searchTerm);
+            if (!idMatch && !nameMatch && !roleMatch && !permMatch) return false;
+          }
+
+          // Role filter
+          if (roleFilter !== "all" && u.role !== roleFilter) return false;
+
+          // Status filter
+          if (statusFilter === "active" && !u.is_active) return false;
+          if (statusFilter === "inactive" && u.is_active) return false;
+
+          return true;
+        });
+
         container.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
-          <div class="border-b border-slate-100 pb-4">
-            <h2 class="text-xl font-bold text-slate-800">จัดการผู้ใช้งาน (User Management)</h2>
-            <p class="text-xs text-slate-500">รายชื่อผู้มีสิทธิ์เข้าตรวจและผู้ดูแลระบบ</p>
+        <div class="space-y-6">
+
+          <!-- 1. Header Banner Card (System Settings Style) -->
+          <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 rounded-2xl text-white p-6 shadow-lg relative overflow-hidden">
+            <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight">ตั้งค่าผู้ใช้งานระบบ</h2>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/50 text-blue-100 font-semibold border border-blue-400/40">USERS</span>
+                  </div>
+                  <p class="text-xs sm:text-sm text-blue-100 mt-0.5">จัดการรายชื่อผู้ตรวจ คุณครู รหัส PIN และสิทธิ์การเข้าถึงห้องเรียนและเขตพื้นที่</p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button type="button"
+                        onclick="handleReloadUsers()"
+                        class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition flex items-center space-x-1.5 shadow-sm">
+                  <svg id="userReloadSpinnerIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>รีโหลด</span>
+                </button>
+                <button type="button"
+                        onclick="openUserModal('create')"
+                        class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-blue-800 hover:bg-blue-50 shadow-md transition transform active:scale-98 flex items-center space-x-1.5">
+                  <svg class="w-4 h-4 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>เพิ่มผู้ใช้งานใหม่</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                <tr>
-                  <th class="py-3 px-4">รหัสผู้ใช้</th>
-                  <th class="py-3 px-4">ชื่อ-นามสกุล</th>
-                  <th class="py-3 px-4">บทบาท (Role)</th>
-                  <th class="py-3 px-4">สิทธิ์การตรวจ</th>
-                  <th class="py-3 px-4 text-center">สถานะ</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                ${AppState.users
-                  .map(
-                    (u) => `
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4 font-mono font-bold text-xs text-slate-600">${u.user_id}</td>
-                    <td class="py-3 px-4 font-medium text-slate-800">${u.full_name}</td>
-                    <td class="py-3 px-4 text-xs font-semibold text-emerald-700">${u.role}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">${Array.isArray(u.allowed_rooms) ? u.allowed_rooms.join(", ") : u.allowed_rooms}</td>
-                    <td class="py-3 px-4 text-center">
-                      <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">ใช้งานได้</span>
-                    </td>
+          <!-- 2. Stat Summary Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div class="space-y-1">
+                <span class="text-xs font-medium text-slate-500 block">ผู้ใช้ทั้งหมด</span>
+                <span class="text-xl sm:text-2xl font-black text-slate-800">${allUsers.length}</span>
+                <span class="text-[11px] text-slate-400 block">บัญชีในระบบ</span>
+              </div>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div class="space-y-1">
+                <span class="text-xs font-medium text-slate-500 block">คุณครู (Admin)</span>
+                <span class="text-xl sm:text-2xl font-black text-emerald-700">${teacherCount}</span>
+                <span class="text-[11px] text-emerald-600 block">สิทธิ์จัดการระบบ</span>
+              </div>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div class="space-y-1">
+                <span class="text-xs font-medium text-slate-500 block">ผู้ตรวจ (Inspector)</span>
+                <span class="text-xl sm:text-2xl font-black text-blue-700">${inspectorCount}</span>
+                <span class="text-[11px] text-blue-600 block">สิทธิ์ตรวจความสะอาด</span>
+              </div>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div class="space-y-1">
+                <span class="text-xs font-medium text-slate-500 block">เปิดใช้งานอยู่</span>
+                <span class="text-xl sm:text-2xl font-black text-indigo-700">${activeCount}</span>
+                <span class="text-[11px] text-indigo-600 block">เข้าสู่ระบบได้</span>
+              </div>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Search & Filter Bar -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+            <!-- Search Box -->
+            <div class="relative w-full md:w-80">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value="${AppState.userSearchTerm || ""}"
+                placeholder="ค้นหาชื่อ, รหัสผู้ใช้, สิทธิ์ตรวจ..."
+                oninput="handleUserSearch(this.value)"
+                class="w-full text-xs sm:text-sm pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 transition"
+              />
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <!-- Role Filter Pills -->
+              <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
+                <button
+                  type="button"
+                  onclick="filterUserByRole('all')"
+                  class="px-3 py-1.5 rounded-lg transition ${roleFilter === "all" ? "bg-white text-slate-800 shadow-xs font-bold" : "text-slate-500 hover:text-slate-700"}"
+                >
+                  ทั้งหมด (${allUsers.length})
+                </button>
+                <button
+                  type="button"
+                  onclick="filterUserByRole('teacher')"
+                  class="px-3 py-1.5 rounded-lg transition ${roleFilter === "teacher" ? "bg-emerald-600 text-white shadow-xs font-bold" : "text-slate-500 hover:text-slate-700"}"
+                >
+                  ครู (${teacherCount})
+                </button>
+                <button
+                  type="button"
+                  onclick="filterUserByRole('Inspector')"
+                  class="px-3 py-1.5 rounded-lg transition ${roleFilter === "Inspector" ? "bg-blue-600 text-white shadow-xs font-bold" : "text-slate-500 hover:text-slate-700"}"
+                >
+                  ผู้ตรวจ (${inspectorCount})
+                </button>
+              </div>
+
+              <!-- Status Filter Select -->
+              <select
+                onchange="filterUserByStatus(this.value)"
+                class="text-xs py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none font-medium text-slate-700 cursor-pointer"
+              >
+                <option value="all" ${statusFilter === "all" ? "selected" : ""}>สถานะทั้งหมด</option>
+                <option value="active" ${statusFilter === "active" ? "selected" : ""}>🟢 เปิดใช้งาน (${activeCount})</option>
+                <option value="inactive" ${statusFilter === "inactive" ? "selected" : ""}>⚪ ระงับการใช้งาน (${allUsers.length - activeCount})</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 4. Main Users Table Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="py-3.5 px-4 sm:px-6">รหัสผู้ใช้</th>
+                    <th class="py-3.5 px-4">ชื่อ-นามสกุล</th>
+                    <th class="py-3.5 px-4">บทบาท (Role)</th>
+                    <th class="py-3.5 px-4">สิทธิ์ตรวจห้องเรียน</th>
+                    <th class="py-3.5 px-4">สิทธิ์ตรวจเขตพื้นที่</th>
+                    <th class="py-3.5 px-4 text-center">สถานะ</th>
+                    <th class="py-3.5 px-4 sm:px-6 text-center">จัดการ</th>
                   </tr>
-                `,
-                  )
-                  .join("")}
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${
+                    filteredUsers.length === 0
+                      ? `
+                    <tr>
+                      <td colspan="7" class="py-12 text-center text-slate-400">
+                        <div class="flex flex-col items-center justify-center space-y-2">
+                          <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                          <span class="text-sm font-medium">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไขการค้นหา</span>
+                        </div>
+                      </td>
+                    </tr>
+                  `
+                      : filteredUsers
+                          .map((u) => {
+                            const isSelf = AppState.currentUser && u.user_id === AppState.currentUser.user_id;
+
+                            // Rooms badge representation
+                            let roomsHtml = "";
+                            if (u.allowed_rooms === "all" || (Array.isArray(u.allowed_rooms) && u.allowed_rooms.includes("all"))) {
+                              roomsHtml = `
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  ทุกห้องเรียน (all)
+                                </span>
+                              `;
+                            } else if (Array.isArray(u.allowed_rooms) && u.allowed_rooms.length > 0) {
+                              roomsHtml = `
+                                <div class="flex flex-wrap gap-1 max-w-[200px]">
+                                  ${u.allowed_rooms
+                                    .slice(0, 3)
+                                    .map(
+                                      (r) => `
+                                    <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                      ${r}
+                                    </span>
+                                  `,
+                                    )
+                                    .join("")}
+                                  ${
+                                    u.allowed_rooms.length > 3
+                                      ? `<span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">+${u.allowed_rooms.length - 3}</span>`
+                                      : ""
+                                  }
+                                </div>
+                              `;
+                            } else {
+                              roomsHtml = `<span class="text-xs text-slate-400 font-medium">ไม่มีสิทธิ์</span>`;
+                            }
+
+                            // Areas badge representation
+                            let areasHtml = "";
+                            if (u.allowed_areas === "all" || (Array.isArray(u.allowed_areas) && u.allowed_areas.includes("all"))) {
+                              areasHtml = `
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                  ทุกเขตพื้นที่ (all)
+                                </span>
+                              `;
+                            } else if (Array.isArray(u.allowed_areas) && u.allowed_areas.length > 0) {
+                              areasHtml = `
+                                <div class="flex flex-wrap gap-1 max-w-[220px]">
+                                  ${u.allowed_areas
+                                    .slice(0, 2)
+                                    .map((aId) => {
+                                      const areaObj = (AppState.areas || []).find((a) => a.area_id === aId);
+                                      const areaName = areaObj ? areaObj.area_name : aId;
+                                      const assignedRoomObj = (AppState.classrooms || []).find((c) => c.area_id === aId);
+                                      const roomLabel = assignedRoomObj && assignedRoomObj.classroom ? assignedRoomObj.classroom : "ยังไม่มีห้องผูก";
+                                      return `
+                                    <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-amber-50/80 text-amber-900 border border-amber-200 line-clamp-1" title="${areaName} (${roomLabel})">
+                                      ${areaName} <span class="text-[10px] text-amber-700 font-normal">(${roomLabel})</span>
+                                    </span>
+                                  `;
+                                    })
+                                    .join("")}
+                                  ${
+                                    u.allowed_areas.length > 2
+                                      ? `<span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">+${u.allowed_areas.length - 2}</span>`
+                                      : ""
+                                  }
+                                </div>
+                              `;
+                            } else {
+                              areasHtml = `<span class="text-xs text-slate-400 font-medium">ไม่มีสิทธิ์</span>`;
+                            }
+
+                            // Avatar letter
+                            const firstChar = (u.full_name || "ผ")[0];
+
+                            return `
+                        <tr class="hover:bg-slate-50/80 transition duration-150">
+                          <!-- 1. User ID -->
+                          <td class="py-3.5 px-4 sm:px-6 whitespace-nowrap">
+                            <span class="font-mono font-bold text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
+                              ${u.user_id}
+                            </span>
+                          </td>
+
+                          <!-- 2. Full Name -->
+                          <td class="py-3.5 px-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2.5">
+                              <div class="w-8 h-8 rounded-full ${u.role === "teacher" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"} flex items-center justify-center font-bold text-xs shadow-inner">
+                                ${firstChar}
+                              </div>
+                              <div class="flex flex-col">
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm flex items-center space-x-1.5">
+                                  <span>${u.full_name}</span>
+                                  ${isSelf ? '<span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500 text-white font-bold">บัญชีปัจจุบัน</span>' : ""}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <!-- 3. Role -->
+                          <td class="py-3.5 px-4 whitespace-nowrap">
+                            ${
+                              u.role === "teacher"
+                                ? `
+                              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                                คุณครู (Teacher)
+                              </span>
+                            `
+                                : `
+                              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>
+                                ผู้ตรวจ (Inspector)
+                              </span>
+                            `
+                            }
+                          </td>
+
+                          <!-- 4. Allowed Rooms -->
+                          <td class="py-3.5 px-4">
+                            ${roomsHtml}
+                          </td>
+
+                          <!-- 5. Allowed Areas -->
+                          <td class="py-3.5 px-4">
+                            ${areasHtml}
+                          </td>
+
+                          <!-- 6. Status Toggle -->
+                          <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                ${u.is_active ? "checked" : ""}
+                                onchange="toggleUserStatus('${u.user_id}')"
+                                class="sr-only peer"
+                              />
+                              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
+                            </label>
+                          </td>
+
+                          <!-- 7. Actions -->
+                          <td class="py-3.5 px-4 sm:px-6 text-center whitespace-nowrap">
+                            <div class="inline-flex items-center space-x-1">
+                              <!-- Edit Button -->
+                              <button
+                                type="button"
+                                onclick="openUserModal('update', '${u.user_id}')"
+                                class="p-1.5 rounded-lg text-slate-500 hover:text-blue-700 hover:bg-blue-50 transition"
+                                title="แก้ไขข้อมูลผู้ใช้"
+                              >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+
+                              <!-- Delete Button -->
+                              ${
+                                isSelf
+                                  ? `
+                                <button
+                                  type="button"
+                                  disabled
+                                  class="p-1.5 rounded-lg text-slate-300 cursor-not-allowed opacity-40"
+                                  title="ไม่สามารถลบบัญชีของตนเองที่กำลังเข้าสู่ระบบได้"
+                                >
+                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              `
+                                  : `
+                                <button
+                                  type="button"
+                                  onclick="confirmDeleteUser('${u.user_id}')"
+                                  class="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition"
+                                  title="ลบผู้ใช้งาน"
+                                >
+                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              `
+                              }
+                            </div>
+                          </td>
+                        </tr>
+                      `;
+                          })
+                          .join("")
+                  }
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      `;
+        `;
+      }
+
+      function handleUserSearch(val) {
+        AppState.userSearchTerm = val;
+        renderUserSettingsTab();
+      }
+
+      function filterUserByRole(role) {
+        AppState.userRoleFilter = role;
+        renderUserSettingsTab();
+      }
+
+      function filterUserByStatus(status) {
+        AppState.userStatusFilter = status;
+        renderUserSettingsTab();
+      }
+
+      async function handleReloadUsers() {
+        const icon = document.getElementById("userReloadSpinnerIcon");
+        if (icon) icon.classList.add("animate-spin");
+        try {
+          await loadInitialData();
+          renderUserSettingsTab();
+          await swalShowSuccess("อัปเดตรายชื่อผู้ใช้งานล่าสุดแล้ว", "", 1000);
+        } finally {
+          if (icon) icon.classList.remove("animate-spin");
+        }
+      }
+
+      // ==========================================
+      // User Modal Engine & Actions
+      // ==========================================
+
+      function getNextUserId() {
+        let maxNum = 0;
+        (AppState.users || []).forEach((u) => {
+          const match = String(u.user_id || "").match(/^USR(\d+)$/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNum) maxNum = num;
+          }
+        });
+        return "USR" + String(maxNum + 1).padStart(3, "0");
+      }
+
+      function openUserModal(mode = "create", targetUserId = "") {
+        const modal = document.getElementById("userModal");
+        const card = document.getElementById("userModalCard");
+        const titleEl = document.getElementById("userModalTitle");
+        const subtitleEl = document.getElementById("userModalSubtitle");
+        const modeInput = document.getElementById("userModalMode");
+        const idInput = document.getElementById("userIdInput");
+        const nameInput = document.getElementById("userFullNameInput");
+        const pinInput = document.getElementById("userPinInput");
+        const pinHelper = document.getElementById("pinHelperText");
+        const activeInput = document.getElementById("userIsActiveInput");
+        const datalist = document.getElementById("teacherNameList");
+
+        modeInput.value = mode;
+
+        // Populate datalist of teachers
+        if (datalist) {
+          datalist.innerHTML = (AppState.teachers || [])
+            .map((t) => `<option value="${t}"></option>`)
+            .join("");
+        }
+
+        if (mode === "create") {
+          titleEl.textContent = "เพิ่มผู้ใช้งานใหม่";
+          subtitleEl.textContent = "กำหนดรหัสผู้ใช้ รหัส PIN 6 หลัก บทบาท และสิทธิ์การตรวจ";
+          idInput.value = getNextUserId();
+          nameInput.value = "";
+          pinInput.value = "";
+          pinInput.placeholder = "เช่น 123456";
+          if (pinHelper) pinHelper.textContent = "เฉพาะตัวเลข 6 หลัก (จำเป็น)";
+          activeInput.checked = true;
+
+          // Set default role = teacher
+          const teacherRadio = document.querySelector('input[name="userRoleRadio"][value="teacher"]');
+          if (teacherRadio) teacherRadio.checked = true;
+
+          // Set default rooms & areas = all
+          const roomsAllRadio = document.querySelector('input[name="userRoomsOptionRadio"][value="all"]');
+          if (roomsAllRadio) roomsAllRadio.checked = true;
+          handleUserRoomsOptionChange("all");
+
+          const areasAllRadio = document.querySelector('input[name="userAreasOptionRadio"][value="all"]');
+          if (areasAllRadio) areasAllRadio.checked = true;
+          handleUserAreasOptionChange("all");
+        } else {
+          titleEl.textContent = `แก้ไขข้อมูลผู้ใช้งาน (${targetUserId})`;
+          subtitleEl.textContent = "ปรับปรุงชื่อ รหัส PIN บทบาท และสิทธิ์การตรวจประจำบัญชี";
+
+          const user = (AppState.users || []).find((u) => u.user_id === targetUserId);
+          if (user) {
+            idInput.value = user.user_id;
+            nameInput.value = user.full_name || "";
+            pinInput.value = "";
+            pinInput.placeholder = "เว้นว่างไว้หากไม่ต้องการเปลี่ยน PIN เดิม";
+            if (pinHelper) pinHelper.textContent = "เว้นว่างไว้หากใช้ PIN เดิม หรือระบุ 6 หลักใหม่";
+            activeInput.checked = user.is_active;
+
+            // Set role radio
+            const roleRadio = document.querySelector(`input[name="userRoleRadio"][value="${user.role}"]`);
+            if (roleRadio) roleRadio.checked = true;
+
+            // Set allowed_rooms
+            const isRoomsAll = user.allowed_rooms === "all" || (Array.isArray(user.allowed_rooms) && user.allowed_rooms.includes("all"));
+            const roomRadio = document.querySelector(`input[name="userRoomsOptionRadio"][value="${isRoomsAll ? "all" : "custom"}"]`);
+            if (roomRadio) roomRadio.checked = true;
+            handleUserRoomsOptionChange(isRoomsAll ? "all" : "custom", user.allowed_rooms);
+
+            // Set allowed_areas
+            const isAreasAll = user.allowed_areas === "all" || (Array.isArray(user.allowed_areas) && user.allowed_areas.includes("all"));
+            const areaRadio = document.querySelector(`input[name="userAreasOptionRadio"][value="${isAreasAll ? "all" : "custom"}"]`);
+            if (areaRadio) areaRadio.checked = true;
+            handleUserAreasOptionChange(isAreasAll ? "all" : "custom", user.allowed_areas);
+          }
+        }
+
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          card.classList.remove("scale-95");
+          nameInput.focus();
+        }, 10);
+      }
+
+      function closeUserModal() {
+        const modal = document.getElementById("userModal");
+        const card = document.getElementById("userModalCard");
+        modal.classList.add("opacity-0");
+        card.classList.add("scale-95");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+        }, 300);
+      }
+
+      function toggleUserPinVisibility() {
+        const pinInput = document.getElementById("userPinInput");
+        if (!pinInput) return;
+        if (pinInput.type === "password") {
+          pinInput.type = "text";
+        } else {
+          pinInput.type = "password";
+        }
+      }
+
+      function handleUserRoleRadioChange(role) {
+        // Can be extended if UI adjustments for roles are needed
+      }
+
+      function handleUserRoomsOptionChange(val, selectedRooms = []) {
+        const container = document.getElementById("userCustomRoomsContainer");
+        if (!container) return;
+
+        if (val === "custom") {
+          container.classList.remove("hidden");
+          populateUserRoomCheckboxes(selectedRooms);
+        } else {
+          container.classList.add("hidden");
+        }
+      }
+
+      function populateUserRoomCheckboxes(selectedRooms = []) {
+        const grid = document.getElementById("userRoomsCheckboxGrid");
+        if (!grid) return;
+
+        const selectedList = Array.isArray(selectedRooms) ? selectedRooms : [];
+        const sortedClassrooms = sortClassrooms(AppState.classrooms || []);
+
+        if (sortedClassrooms.length === 0) {
+          grid.innerHTML = '<p class="col-span-4 text-xs text-slate-400 p-2 text-center">ยังไม่มีข้อมูลห้องเรียนในระบบ</p>';
+          return;
+        }
+
+        grid.innerHTML = sortedClassrooms
+          .map((c) => {
+            const isChecked = selectedList.includes(c.classroom);
+            return `
+            <label class="flex items-center space-x-1.5 p-1.5 rounded-md hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition">
+              <input
+                type="checkbox"
+                name="userRoomCheckbox"
+                value="${c.classroom}"
+                ${isChecked ? "checked" : ""}
+                class="w-3.5 h-3.5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <span class="text-xs font-bold text-slate-700">${c.classroom}</span>
+            </label>
+          `;
+          })
+          .join("");
+      }
+
+      function selectAllUserRooms(select = true) {
+        const checkboxes = document.querySelectorAll('input[name="userRoomCheckbox"]');
+        checkboxes.forEach((cb) => (cb.checked = select));
+      }
+
+      function handleUserAreasOptionChange(val, selectedAreas = []) {
+        const container = document.getElementById("userCustomAreasContainer");
+        if (!container) return;
+
+        if (val === "custom") {
+          container.classList.remove("hidden");
+          populateUserAreaCheckboxes(selectedAreas);
+        } else {
+          container.classList.add("hidden");
+        }
+      }
+
+      function populateUserAreaCheckboxes(selectedAreas = []) {
+        const grid = document.getElementById("userAreasCheckboxGrid");
+        if (!grid) return;
+
+        const selectedList = Array.isArray(selectedAreas) ? selectedAreas : [];
+        const areas = AppState.areas || [];
+
+        if (areas.length === 0) {
+          grid.innerHTML = '<p class="col-span-2 text-xs text-slate-400 p-2 text-center">ยังไม่มีข้อมูลเขตพื้นที่ในระบบ</p>';
+          return;
+        }
+
+        grid.innerHTML = areas
+          .map((a) => {
+            const isChecked = selectedList.includes(a.area_id);
+            const assignedRoomObj = (AppState.classrooms || []).find(
+              (c) => c.area_id === a.area_id,
+            );
+            const roomLabel =
+              assignedRoomObj && assignedRoomObj.classroom
+                ? assignedRoomObj.classroom
+                : "ยังไม่มีห้องผูก";
+            const roomBadgeClass =
+              assignedRoomObj && assignedRoomObj.classroom
+                ? "text-emerald-700 font-semibold"
+                : "text-slate-400 italic";
+
+            return `
+            <label class="flex items-center space-x-2 p-1.5 rounded-md hover:bg-slate-50 cursor-pointer border border-transparent hover:border-slate-200 transition">
+              <input
+                type="checkbox"
+                name="userAreaCheckbox"
+                value="${a.area_id}"
+                ${isChecked ? "checked" : ""}
+                class="w-3.5 h-3.5 text-amber-600 rounded focus:ring-amber-500 flex-shrink-0"
+              />
+              <div class="flex flex-col min-w-0">
+                <span class="text-xs font-bold text-slate-800 truncate">${a.area_name}</span>
+                <span class="text-[11px] ${roomBadgeClass} truncate">${roomLabel}</span>
+              </div>
+            </label>
+          `;
+          })
+          .join("");
+      }
+
+      function selectAllUserAreas(select = true) {
+        const checkboxes = document.querySelectorAll('input[name="userAreaCheckbox"]');
+        checkboxes.forEach((cb) => (cb.checked = select));
+      }
+
+      async function submitUserModal() {
+        try {
+          const mode = document.getElementById("userModalMode").value;
+          const userId = document.getElementById("userIdInput").value.trim();
+          const fullName = document.getElementById("userFullNameInput").value.trim();
+          const pin = document.getElementById("userPinInput").value.trim();
+          const isActive = document.getElementById("userIsActiveInput").checked ? "TRUE" : "FALSE";
+
+          const roleRadio = document.querySelector('input[name="userRoleRadio"]:checked');
+          const role = roleRadio ? roleRadio.value : "Inspector";
+
+          // Validate Full Name
+          if (!fullName) {
+            swalShowWarning("กรุณาระบุชื่อ-นามสกุล", "ต้องระบุชื่อผู้ใช้งานก่อนทำการบันทึก");
+            return;
+          }
+
+          // Validate PIN
+          if (mode === "create") {
+            if (!pin || !/^\d{6}$/.test(pin)) {
+              swalShowWarning("รหัส PIN ไม่ถูกต้อง", "รหัส PIN ต้องเป็นตัวเลขจำนวนเต็ม 6 หลักเท่านั้น");
+              return;
+            }
+          } else {
+            if (pin && !/^\d{6}$/.test(pin)) {
+              swalShowWarning("รหัส PIN ไม่ถูกต้อง", "รหัส PIN ต้องเป็นตัวเลขจำนวนเต็ม 6 หลักเท่านั้น");
+              return;
+            }
+          }
+
+          // Validate Allowed Rooms
+          const roomsOptRadio = document.querySelector('input[name="userRoomsOptionRadio"]:checked');
+          const roomsOption = roomsOptRadio ? roomsOptRadio.value : "all";
+          let allowedRooms = "all";
+
+          if (roomsOption === "custom") {
+            const checkedBoxes = document.querySelectorAll('input[name="userRoomCheckbox"]:checked');
+            const roomsList = Array.from(checkedBoxes).map((cb) => cb.value);
+            if (roomsList.length === 0) {
+              swalShowWarning("กรุณาเลือกห้องเรียน", "เมื่อเลือกแบบระบุห้องเรียน ต้องเลือกอย่างน้อย 1 ห้อง");
+              return;
+            }
+            allowedRooms = roomsList;
+          }
+
+          // Validate Allowed Areas
+          const areasOptRadio = document.querySelector('input[name="userAreasOptionRadio"]:checked');
+          const areasOption = areasOptRadio ? areasOptRadio.value : "all";
+          let allowedAreas = "all";
+
+          if (areasOption === "custom") {
+            const checkedBoxes = document.querySelectorAll('input[name="userAreaCheckbox"]:checked');
+            const areasList = Array.from(checkedBoxes).map((cb) => cb.value);
+            if (areasList.length === 0) {
+              swalShowWarning("กรุณาเลือกเขตพื้นที่", "เมื่อเลือกแบบระบุเขตพื้นที่ ต้องเลือกอย่างน้อย 1 เขต");
+              return;
+            }
+            allowedAreas = areasList;
+          }
+
+          // Format Display Strings for Confirmation Dialog
+          const roomsDisplayStr =
+            allowedRooms === "all"
+              ? "ทุกห้องเรียน (all)"
+              : Array.isArray(allowedRooms)
+                ? allowedRooms.join(", ")
+                : allowedRooms;
+
+          let areasDisplayStr = "ทุกเขตพื้นที่ (all)";
+          if (allowedAreas !== "all" && Array.isArray(allowedAreas)) {
+            areasDisplayStr = allowedAreas
+              .map((aId) => {
+                const areaObj = (AppState.areas || []).find((a) => a.area_id === aId);
+                const areaName = areaObj ? areaObj.area_name : aId;
+                const assignedRoomObj = (AppState.classrooms || []).find((c) => c.area_id === aId);
+                const roomLabel = assignedRoomObj && assignedRoomObj.classroom ? assignedRoomObj.classroom : "ยังไม่มีห้องผูก";
+                return `${areaName} (${roomLabel})`;
+              })
+              .join(", ");
+          }
+
+          const confirmResult = await swalCustom().fire({
+            title: mode === "create" ? `ยืนยันเพิ่มผู้ใช้ [${userId}]?` : `ยืนยันแก้ไขผู้ใช้ [${userId}]?`,
+            html: `
+              <div class="text-left text-sm p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                <div>👤 <b>ชื่อ-นามสกุล:</b> ${fullName}</div>
+                <div>🔑 <b>รหัสผู้ใช้:</b> <span class="font-mono font-bold text-blue-700">${userId}</span></div>
+                <div>🎭 <b>บทบาท:</b> ${role === "teacher" ? "คุณครู (Teacher)" : "ผู้ตรวจ (Inspector)"}</div>
+                <div>🏫 <b>สิทธิ์ห้องเรียน:</b> ${roomsDisplayStr}</div>
+                <div>📍 <b>สิทธิ์เขตพื้นที่:</b> ${areasDisplayStr}</div>
+                <div>🟢 <b>สถานะ:</b> ${isActive === "TRUE" ? "เปิดใช้งาน" : "ระงับการใช้งาน"}</div>
+              </div>
+            `,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "บันทึกข้อมูล",
+            cancelButtonText: "ยกเลิก",
+          });
+
+          if (!confirmResult.isConfirmed) return;
+
+          swalShowLoading("กำลังบันทึกข้อมูลผู้ใช้งาน...", "กรุณารอสักครู่");
+
+          const payload = {
+            action: "manageUser",
+            mode: mode,
+            user_id: userId,
+            full_name: fullName,
+            pin: pin || "******",
+            role: role,
+            allowed_rooms: allowedRooms,
+            allowed_areas: allowedAreas,
+            is_active: isActive,
+            current_user_id: AppState.currentUser ? AppState.currentUser.user_id : "",
+          };
+
+          if (GAS_API_URL && !GAS_API_URL.includes("placeholder")) {
+            const response = await fetch(GAS_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(payload),
+            });
+            const res = await response.json();
+            if (res.status !== "success") {
+              throw new Error(res.message || "บันทึกข้อมูลไม่สำเร็จ");
+            }
+          }
+
+          // Update local AppState.users
+          const updatedUserObj = {
+            user_id: userId,
+            full_name: fullName,
+            role: role,
+            allowed_rooms: allowedRooms,
+            allowed_areas: allowedAreas,
+            is_active: isActive === "TRUE",
+          };
+
+          if (mode === "create") {
+            AppState.users.push(updatedUserObj);
+          } else {
+            const idx = AppState.users.findIndex((u) => u.user_id === userId);
+            if (idx !== -1) {
+              AppState.users[idx] = updatedUserObj;
+            }
+          }
+
+          closeUserModal();
+          renderUserSettingsTab();
+          await swalShowSuccess("บันทึกข้อมูลผู้ใช้งานสำเร็จ!", "", 1200);
+        } catch (err) {
+          console.error("Error saving user:", err);
+          swalShowError("บันทึกไม่สำเร็จ", err.message);
+        }
+      }
+
+      async function toggleUserStatus(userId) {
+        try {
+          const user = (AppState.users || []).find((u) => u.user_id === userId);
+          if (!user) return;
+
+          const newStatus = !user.is_active;
+          user.is_active = newStatus;
+
+          const payload = {
+            action: "manageUser",
+            mode: "toggle",
+            user_id: userId,
+            current_user_id: AppState.currentUser ? AppState.currentUser.user_id : "",
+          };
+
+          if (GAS_API_URL && !GAS_API_URL.includes("placeholder")) {
+            fetch(GAS_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(payload),
+            }).catch((e) => console.error("Async user toggle error:", e));
+          }
+
+          renderUserSettingsTab();
+        } catch (err) {
+          console.error("Error toggling user status:", err);
+        }
+      }
+
+      async function confirmDeleteUser(userId) {
+        try {
+          if (AppState.currentUser && userId === AppState.currentUser.user_id) {
+            swalShowWarning("ไม่สามารถลบตัวเองได้", "คุณกำลังเข้าสู่ระบบด้วยบัญชีนี้ จึงไม่สามารถลบบัญชีตนเองออกจากระบบได้");
+            return;
+          }
+
+          const user = (AppState.users || []).find((u) => u.user_id === userId);
+          const userName = user ? user.full_name : userId;
+
+          const confirmResult = await swalCustom().fire({
+            title: `ยืนยันการลบผู้ใช้ [${userId}]?`,
+            html: `คุณต้องการลบข้อมูลบัญชีของ <b>${userName}</b> (${userId}) ออกจากระบบหรือไม่?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "ลบผู้ใช้งาน",
+            cancelButtonText: "ยกเลิก",
+            confirmButtonColor: "#ef4444",
+          });
+
+          if (!confirmResult.isConfirmed) return;
+
+          swalShowLoading("กำลังลบผู้ใช้งาน...", "กรุณารอสักครู่");
+
+          const payload = {
+            action: "manageUser",
+            mode: "delete",
+            user_id: userId,
+            current_user_id: AppState.currentUser ? AppState.currentUser.user_id : "",
+          };
+
+          if (GAS_API_URL && !GAS_API_URL.includes("placeholder")) {
+            const response = await fetch(GAS_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(payload),
+            });
+            const res = await response.json();
+            if (res.status !== "success") {
+              throw new Error(res.message || "ลบข้อมูลไม่สำเร็จ");
+            }
+          }
+
+          AppState.users = (AppState.users || []).filter((u) => u.user_id !== userId);
+          renderUserSettingsTab();
+          await swalShowSuccess("ลบผู้ใช้งานเรียบร้อยแล้ว", "", 1200);
+        } catch (err) {
+          console.error("Error deleting user:", err);
+          swalShowError("ลบไม่สำเร็จ", err.message);
+        }
       }
     </script>
   </body>

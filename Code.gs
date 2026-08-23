@@ -117,7 +117,8 @@ function setupSystemSheets() {
         'percentage',
         'comment',
         'image_urls_json',
-        'term'
+        'term',
+        'day_of_week'
       ],
       defaultData: []
     }
@@ -239,6 +240,9 @@ function doGet(e) {
       case 'getTodaySummary':
         return createJsonResponse(handleGetTodaySummary());
 
+      case 'getStatsLogs':
+        return createJsonResponse(handleGetStatsLogs(e && e.parameter));
+
       case 'autoClean':
         return createJsonResponse(autoCleanDriveImages());
 
@@ -278,6 +282,9 @@ function doPost(e) {
       case 'getInitialData':
         return createJsonResponse(handleGetInitialData());
 
+      case 'getStatsLogs':
+        return createJsonResponse(handleGetStatsLogs(payload));
+
       case 'verifyPin':
         return createJsonResponse(handleVerifyPin(payload));
 
@@ -298,6 +305,9 @@ function doPost(e) {
 
       case 'manageTeacher':
         return createJsonResponse(handleManageTeacher(payload));
+
+      case 'manageUser':
+        return createJsonResponse(handleManageUser(payload));
 
       case 'autoClean':
         return createJsonResponse(autoCleanDriveImages());
@@ -374,6 +384,13 @@ function handleGetInitialData() {
     .filter(name => name.length > 0);
 
   const todaySummary = handleGetTodaySummary();
+  let statsData = null;
+  try {
+    const statsRes = handleGetStatsLogs();
+    if (statsRes && statsRes.status === 'success') {
+      statsData = statsRes.data;
+    }
+  } catch (e) {}
 
   return {
     status: 'success',
@@ -384,7 +401,8 @@ function handleGetInitialData() {
       areas: areas,
       checklists: checklists,
       teachers: teachers,
-      todaySummary: todaySummary
+      todaySummary: todaySummary,
+      statsData: statsData
     }
   };
 }
@@ -580,6 +598,15 @@ function handleSaveInspection(payload) {
       });
     }
 
+    // ตรวจสอบและสร้างหัวตาราง day_of_week ในคอลัมน์ O (15) หากยังไม่มี
+    const dayOfWeek = getThaiDayOfWeek(dateStr);
+    /*try {
+      const headerCheck = logSheet.getRange(1, 1, 1, Math.max(lastCol, 15)).getDisplayValues()[0];
+      if (!headerCheck[14] || String(headerCheck[14]).trim() === '') {
+        logSheet.getRange(1, 15).setValue('day_of_week');
+      }
+    } catch (headErr) {}*/
+
     const rowData = [
       recordId,
       timestampStr,
@@ -594,7 +621,8 @@ function handleSaveInspection(payload) {
       percentage,
       comment,
       JSON.stringify(imageUrls),
-      term
+      term,
+      dayOfWeek
     ];
 
     let responseMessage = '';
@@ -612,6 +640,7 @@ function handleSaveInspection(payload) {
       status: 'success',
       message: responseMessage,
       record_id: recordId,
+      day_of_week: dayOfWeek,
       is_overwritten: existingRowIndex > 0,
       image_count: imageUrls.length,
       image_urls: imageUrls
@@ -976,12 +1005,7 @@ function handleManageClassroom(payload) {
         };
       }
 
-      // 3. ตรวจสอบว่า area_id ถูกระบุหรือไม่
-      if (!areaId) {
-        return { status: 'error', message: 'กรุณาเลือกเขตพื้นที่รับผิดชอบ' };
-      }
-
-      // 4. ตรวจสอบความซ้ำซ้อนภายในชีต (classroom และ area_id ห้ามซ้ำ)
+      // 3. ตรวจสอบความซ้ำซ้อนภายในชีต (classroom ห้ามซ้ำ, area_id ห้ามซ้ำหากมีการระบุ)
       for (let r = 1; r < data.length; r++) {
         const rowClass = String(data[r][classCol]).trim();
         const rowArea = String(data[r][areaCol]).trim();
@@ -991,7 +1015,7 @@ function handleManageClassroom(payload) {
           if (rowClass === classroom) {
             return { status: 'error', message: `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว` };
           }
-          if (rowArea === areaId) {
+          if (areaId && rowArea === areaId) {
             return { status: 'error', message: `เขตพื้นที่ ${areaId} ถูกผูกไว้กับห้อง ${rowClass} แล้ว (ห้ามซ้ำกัน)` };
           }
         }
@@ -1002,7 +1026,7 @@ function handleManageClassroom(payload) {
             if (rowClass === classroom) {
               return { status: 'error', message: `ห้องเรียน ${classroom} มีอยู่ในระบบแล้ว` };
             }
-            if (rowArea === areaId) {
+            if (areaId && rowArea === areaId) {
               return { status: 'error', message: `เขตพื้นที่ ${areaId} ถูกผูกไว้กับห้อง ${rowClass} แล้ว (ห้ามซ้ำกัน)` };
             }
           }
@@ -1409,6 +1433,405 @@ function handleManageTeacher(payload) {
     return { status: 'error', message: 'เกิดข้อผิดพลาดในการจัดการข้อมูลครู: ' + error.toString() };
   } finally {
     lock.releaseLock();
+  }
+}
+
+/**
+ * จัดการข้อมูลผู้ใช้งานระบบ (USERS) : create, update, toggle, delete
+ */
+function handleManageUser(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    let sheet = ss.getSheetByName('USERS');
+    if (!sheet) {
+      sheet = ss.insertSheet('USERS');
+      sheet.getRange(1, 1, 1, 7).setValues([['user_id', 'full_name', 'pin', 'role', 'allowed_rooms', 'allowed_areas', 'is_active']]);
+    }
+
+    const mode = payload.mode || 'create';
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 1) {
+      return { status: 'error', message: 'ตาราง USERS ว่างเปล่า' };
+    }
+
+    const headers = data[0].map(h => String(h).trim().toLowerCase());
+    const idCol = headers.indexOf('user_id');
+    const nameCol = headers.indexOf('full_name');
+    const pinCol = headers.indexOf('pin');
+    const roleCol = headers.indexOf('role');
+    const roomsCol = headers.indexOf('allowed_rooms');
+    const areasCol = headers.indexOf('allowed_areas');
+    const activeCol = headers.indexOf('is_active');
+
+    let userId = String(payload.user_id || '').trim();
+    const fullName = String(payload.full_name || '').trim();
+    const pin = String(payload.pin || '').trim();
+    const role = String(payload.role || 'Inspector').trim();
+    
+    // จัดการ allowed_rooms / allowed_areas (รองรับ 'all' หรือ Array)
+    let allowedRooms = 'all';
+    if (payload.allowed_rooms !== undefined) {
+      if (Array.isArray(payload.allowed_rooms)) {
+        allowedRooms = JSON.stringify(payload.allowed_rooms);
+      } else {
+        allowedRooms = String(payload.allowed_rooms);
+      }
+    }
+
+    let allowedAreas = 'all';
+    if (payload.allowed_areas !== undefined) {
+      if (Array.isArray(payload.allowed_areas)) {
+        allowedAreas = JSON.stringify(payload.allowed_areas);
+      } else {
+        allowedAreas = String(payload.allowed_areas);
+      }
+    }
+
+    const isActive = String(payload.is_active).toUpperCase() === 'FALSE' ? 'FALSE' : 'TRUE';
+    const currentUserId = String(payload.current_user_id || '').trim();
+
+    if (mode === 'create') {
+      if (!fullName) {
+        return { status: 'error', message: 'กรุณาระบุชื่อ-นามสกุลผู้ใช้งาน' };
+      }
+      if (!pin || !/^\d{6}$/.test(pin)) {
+        return { status: 'error', message: 'รหัส PIN ต้องเป็นตัวเลข 6 หลักเท่านั้น' };
+      }
+
+      // ตรวจสอบ PIN ซ้ำในระบบ
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][pinCol]).trim() === pin) {
+          return { status: 'error', message: `รหัส PIN "${pin}" มีผู้ใช้งานแล้ว กรุณากำหนดรหัส PIN อื่น` };
+        }
+      }
+
+      // หาค่า user_id สูงสุดเดิม แล้ว +1 ในรูปแบบ USR000
+      let maxNum = 0;
+      for (let r = 1; r < data.length; r++) {
+        const uid = String(data[r][idCol]).trim();
+        const match = uid.match(/^USR(\d+)$/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+
+      const nextNum = maxNum + 1;
+      userId = 'USR' + String(nextNum).padStart(3, '0');
+
+      sheet.appendRow([userId, fullName, pin, role, allowedRooms, allowedAreas, isActive]);
+
+      return {
+        status: 'success',
+        message: `เพิ่มผู้ใช้งาน ${fullName} (${userId}) สำเร็จ`,
+        user: {
+          user_id: userId,
+          full_name: fullName,
+          role: role,
+          allowed_rooms: parseJsonOrRaw(allowedRooms),
+          allowed_areas: parseJsonOrRaw(allowedAreas),
+          is_active: isActive === 'TRUE'
+        }
+      };
+    }
+
+    if (mode === 'update') {
+      if (!userId) return { status: 'error', message: 'ไม่พบรหัสผู้ใช้งาน' };
+      if (!fullName) return { status: 'error', message: 'กรุณาระบุชื่อ-นามสกุลผู้ใช้งาน' };
+
+      let targetRowIndex = -1;
+      let existingPin = '';
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === userId) {
+          targetRowIndex = r + 1;
+          existingPin = String(data[r][pinCol]).trim();
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบผู้ใช้งานรหัส ${userId} ในระบบ` };
+      }
+
+      // ตรวจสอบและอัปเดต PIN
+      let finalPin = existingPin;
+      if (pin && pin !== '******' && pin !== existingPin) {
+        if (!/^\d{6}$/.test(pin)) {
+          return { status: 'error', message: 'รหัส PIN ต้องเป็นตัวเลข 6 หลักเท่านั้น' };
+        }
+        for (let r = 1; r < data.length; r++) {
+          if (r + 1 !== targetRowIndex && String(data[r][pinCol]).trim() === pin) {
+            return { status: 'error', message: `รหัส PIN "${pin}" ซ้ำกับผู้ใช้อื่นในระบบ` };
+          }
+        }
+        finalPin = pin;
+      }
+
+      sheet.getRange(targetRowIndex, nameCol + 1).setValue(fullName);
+      sheet.getRange(targetRowIndex, pinCol + 1).setValue(finalPin);
+      sheet.getRange(targetRowIndex, roleCol + 1).setValue(role);
+      sheet.getRange(targetRowIndex, roomsCol + 1).setValue(allowedRooms);
+      sheet.getRange(targetRowIndex, areasCol + 1).setValue(allowedAreas);
+      sheet.getRange(targetRowIndex, activeCol + 1).setValue(isActive);
+
+      return {
+        status: 'success',
+        message: `แก้ไขข้อมูลผู้ใช้งาน ${fullName} (${userId}) สำเร็จ`,
+        user: {
+          user_id: userId,
+          full_name: fullName,
+          role: role,
+          allowed_rooms: parseJsonOrRaw(allowedRooms),
+          allowed_areas: parseJsonOrRaw(allowedAreas),
+          is_active: isActive === 'TRUE'
+        }
+      };
+    }
+
+    if (mode === 'toggle') {
+      if (!userId) return { status: 'error', message: 'ไม่พบรหัสผู้ใช้งาน' };
+
+      let targetRowIndex = -1;
+      let currentActive = 'TRUE';
+      let targetName = '';
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === userId) {
+          targetRowIndex = r + 1;
+          currentActive = String(data[r][activeCol]).trim().toUpperCase();
+          targetName = String(data[r][nameCol]).trim();
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบผู้ใช้งานรหัส ${userId}` };
+      }
+
+      const newStatus = currentActive === 'TRUE' ? 'FALSE' : 'TRUE';
+      sheet.getRange(targetRowIndex, activeCol + 1).setValue(newStatus);
+
+      return {
+        status: 'success',
+        message: `เปลี่ยนสถานะ ${targetName} เป็น ${newStatus === 'TRUE' ? 'เปิดใช้งาน' : 'ระงับการใช้งาน'} สำเร็จ`,
+        is_active: newStatus === 'TRUE'
+      };
+    }
+
+    if (mode === 'delete') {
+      if (!userId) return { status: 'error', message: 'ไม่พบรหัสผู้ใช้งานที่ต้องการลบ' };
+
+      if (currentUserId && userId === currentUserId) {
+        return { status: 'error', message: 'ไม่สามารถลบบัญชีผู้ใช้งานของตนเองที่กำลังเข้าสู่ระบบอยู่ได้' };
+      }
+
+      let targetRowIndex = -1;
+      let targetName = '';
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][idCol]).trim() === userId) {
+          targetRowIndex = r + 1;
+          targetName = String(data[r][nameCol]).trim();
+          break;
+        }
+      }
+
+      if (targetRowIndex === -1) {
+        return { status: 'error', message: `ไม่พบผู้ใช้งาน ${userId} ในระบบ` };
+      }
+
+      sheet.deleteRow(targetRowIndex);
+
+      return {
+        status: 'success',
+        message: `ลบผู้ใช้งาน ${targetName} (${userId}) เรียบร้อยแล้ว`
+      };
+    }
+
+    return { status: 'error', message: `Invalid mode: ${mode}` };
+  } catch (error) {
+    return { status: 'error', message: 'เกิดข้อผิดพลาดในการจัดการผู้ใช้งาน: ' + error.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ==========================================
+// 12. ฟังก์ชันดึงข้อมูลสถิติประวัติการตรวจ (Stats Engine)
+// ==========================================
+
+/**
+ * ดึงชื่อวันในสัปดาห์ภาษาไทย (อาทิตย์ - เสาร์)
+ */
+function getThaiDayOfWeek(dateInput) {
+  try {
+    const thaiDays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+    let d;
+    if (typeof dateInput === 'string') {
+      const parts = String(dateInput).trim().split('-');
+      if (parts.length === 3) {
+        d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      } else {
+        d = new Date(dateInput);
+      }
+    } else if (dateInput instanceof Date) {
+      d = dateInput;
+    } else {
+      d = new Date();
+    }
+    const dayIndex = d.getDay();
+    return thaiDays[dayIndex] || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+/**
+ * แปลงวันที่ YYYY-MM-DD เป็นรูปแบบวันที่ภาษาไทยแบบย่อ เช่น '23 ส.ค. 69'
+ */
+function formatThaiDateShort(dateStr) {
+  try {
+    if (!dateStr) return '';
+    const parts = String(dateStr).trim().split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const thaiYearShort = String((year + 543) % 100).padStart(2, '0');
+      const thaiMonth = thaiMonths[month] || '';
+      return `${day} ${thaiMonth} ${thaiYearShort}`;
+    }
+  } catch (e) {}
+  return String(dateStr);
+}
+
+/**
+ * แปลงวันที่ YYYY-MM-DD เป็นรูปแบบวันที่ภาษาไทยแบบเต็ม เช่น 'วันศุกร์ที่ 21 สิงหาคม 2569'
+ */
+function formatThaiDateFull(dateStr) {
+  try {
+    if (!dateStr) return '';
+    const parts = String(dateStr).trim().split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const d = new Date(year, month, day);
+      const thaiDays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+      const thaiMonthsFull = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      const dayName = thaiDays[d.getDay()] || '';
+      const monthName = thaiMonthsFull[month] || '';
+      const thaiYear = year + 543;
+      return `วัน${dayName}ที่ ${day} ${monthName} ${thaiYear}`;
+    }
+  } catch (e) {}
+  return String(dateStr);
+}
+
+/**
+ * ดึงประวัติการตรวจทั้งหมดสำหรับแท็บสถิติห้องเรียน
+ */
+function handleGetStatsLogs(params) {
+  try {
+    const rawLogs = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'LOG_inspections!A:O', 0);
+    
+    // Optional filter by term
+    const targetTerm = params && params.term ? String(params.term).trim() : '';
+
+    const allLogs = [];
+    const dateMap = {};
+
+    rawLogs.forEach(log => {
+      // Normalize date_str
+      let logDate = String(log.date_str || '').trim();
+      if (logDate.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(logDate)) {
+        logDate = logDate.slice(0, 10);
+      } else if (log.timestamp) {
+        try {
+          const d = new Date(log.timestamp);
+          if (!isNaN(d.getTime())) {
+            logDate = Utilities.formatDate(d, CONFIG.TIMEZONE, 'yyyy-MM-dd');
+          }
+        } catch (e) {}
+      }
+
+      if (!logDate) return;
+
+      // Filter by term if specified
+      if (targetTerm && log.term && String(log.term).trim() !== targetTerm) {
+        return;
+      }
+
+      // Parse scores
+      const parsedScores = parseJsonOrRaw(log.scores_json);
+      const dayOfWeek = log.day_of_week || getThaiDayOfWeek(logDate);
+
+      const logItem = {
+        record_id: log.record_id,
+        timestamp: log.timestamp,
+        date_str: logDate,
+        day_of_week: dayOfWeek,
+        thai_date: formatThaiDateShort(logDate),
+        full_thai_date: formatThaiDateFull(logDate),
+        type: log.type, // 'room' | 'area'
+        target_id: log.target_id,
+        target_name: log.target_name,
+        inspector_name: log.inspector_name,
+        scores: parsedScores,
+        total_score: Number(log.total_score || 0),
+        max_score: Number(log.max_score || 0),
+        percentage: Number(log.percentage || 0),
+        comment: log.comment || '',
+        term: log.term || ''
+      };
+
+      allLogs.push(logItem);
+
+      // Aggregate date stats
+      if (!dateMap[logDate]) {
+        dateMap[logDate] = {
+          date_str: logDate,
+          day_of_week: dayOfWeek,
+          thai_date: formatThaiDateShort(logDate),
+          full_thai_date: formatThaiDateFull(logDate),
+          room_count: 0,
+          area_count: 0,
+          total_count: 0
+        };
+      }
+
+      if (log.type === 'room') {
+        dateMap[logDate].room_count += 1;
+      } else if (log.type === 'area') {
+        dateMap[logDate].area_count += 1;
+      }
+      dateMap[logDate].total_count += 1;
+    });
+
+    // Sort available dates descending (newest first)
+    const availableDates = Object.values(dateMap).sort((a, b) => {
+      return b.date_str.localeCompare(a.date_str);
+    });
+
+    return {
+      status: 'success',
+      data: {
+        total_logs: allLogs.length,
+        total_inspection_days: availableDates.length,
+        available_dates: availableDates,
+        logs: allLogs
+      }
+    };
+  } catch (error) {
+    Logger.log('⚠️ เกิดข้อผิดพลาดใน handleGetStatsLogs: ' + error.toString());
+    return {
+      status: 'error',
+      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสถิติ: ' + error.toString()
+    };
   }
 }
 
