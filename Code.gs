@@ -933,15 +933,25 @@ function handleSaveSystemSettings(payload) {
       enable_room_check: payload.enable_room_check !== undefined ? (String(payload.enable_room_check).toUpperCase() === 'TRUE' ? 'TRUE' : 'FALSE') : undefined,
       enable_area_check: payload.enable_area_check !== undefined ? (String(payload.enable_area_check).toUpperCase() === 'TRUE' ? 'TRUE' : 'FALSE') : undefined,
       academic_term: payload.academic_term !== undefined ? String(payload.academic_term).trim() : undefined,
-      auto_delete_days: payload.auto_delete_days !== undefined ? String(payload.auto_delete_days).trim() : undefined
+      auto_delete_days: payload.auto_delete_days !== undefined ? String(payload.auto_delete_days).trim() : undefined,
+      session_timeout_minutes: payload.session_timeout_minutes !== undefined ? String(payload.session_timeout_minutes).trim() : undefined
     };
 
+    const foundKeys = {};
     for (let r = 1; r < data.length; r++) {
       const key = String(data[r][keyIndex]).trim();
       if (updates[key] !== undefined) {
         sheet.getRange(r + 1, valIndex + 1).setValue(updates[key]);
+        foundKeys[key] = true;
       }
     }
+
+    // หากมี key ที่ส่งมาแต่ยังไม่มีในชีต SETTING ให้ appendRow อัตโนมัติ
+    Object.keys(updates).forEach(k => {
+      if (updates[k] !== undefined && !foundKeys[k]) {
+        sheet.appendRow([k, updates[k], '']);
+      }
+    });
 
     return { status: 'success', message: 'บันทึกการตั้งค่าระบบสำเร็จ' };
   } catch (error) {

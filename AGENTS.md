@@ -60,6 +60,7 @@ PCSK-CheckClassroom V3/
   * `enable_area_check`: `TRUE` / `FALSE`
   * `academic_term`: `1/2569`
   * `auto_delete_days`: จำนวนวันลบรูปภาพใน Drive อัตโนมัติ (`0` = ปิดใช้งาน)
+  * `session_timeout_minutes`: ระยะเวลาออกจากระบบอัตโนมัติเมื่อไม่มีการใช้งาน (นาที เช่น `30`, `0` = ปิดใช้งาน)
 
 ### 4.2 `USERS` (ข้อมูลผู้ใช้งานและสิทธิ์)
 * **Headers:** `user_id` | `full_name` | `pin` | `role` | `allowed_rooms` | `allowed_areas` | `is_active`
