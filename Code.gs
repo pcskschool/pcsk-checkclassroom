@@ -2023,28 +2023,33 @@ function handleExportTodayReport(payload) {
 
     SpreadsheetApp.flush();
 
-    // 5. ส่งออกเป็น PDF ผ่าน Google Sheets Export URL
+    // 5. ส่งออกเป็น PDF เฉพาะชีต TEMP_exportToday
     const sheetId = templateSheet.getSheetId();
     const dateCode = getThaiDateCode(todayStr);
     const pdfFileName = `สรุปข้อมูลความสะอาดห้องเรียน_${dateCode}.pdf`;
 
-    const exportUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.SPREADSHEET_ID}/export?` +
-      `format=pdf` +
-      `&gid=${sheetId}` +
-      `&size=A4` +
+    // กำหนดพารามิเตอร์การพิมพ์ขนาด A4 (size=7), พอดีความกว้าง (fitw=true),
+    // ระยะขอบตามที่ผู้ใช้กำหนด: บน-ล่าง 1.905 ซม. (0.75 นิ้ว), ซ้าย-ขวา 1.778 ซม. (0.70 นิ้ว)
+    const exportQueryString = `exportFormat=pdf&format=pdf` +
+      `&size=7` +
       `&portrait=true` +
       `&fitw=true` +
       `&gridlines=false` +
       `&printtitle=false` +
       `&sheetnames=false` +
       `&fzr=false` +
-      `&top_margin=0.25` +
-      `&bottom_margin=0.25` +
-      `&left_margin=0.25` +
-      `&right_margin=0.25`;
+      `&top_margin=0.75` +
+      `&bottom_margin=0.75` +
+      `&left_margin=0.70` +
+      `&right_margin=0.70`;
 
-    let pdfBase64 = '';
+    let pdfBlob = null;
+
+    // วิธีที่ 1: ดึงผ่าน Google Sheets Export URL โดยระบุ gid ของ TEMP_exportToday โดยตรง
     try {
+      const exportUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.SPREADSHEET_ID}/export?` +
+        exportQueryString + `&gid=${sheetId}`;
+
       const pdfResponse = UrlFetchApp.fetch(exportUrl, {
         headers: {
           'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
@@ -2053,20 +2058,74 @@ function handleExportTodayReport(payload) {
       });
 
       if (pdfResponse.getResponseCode() === 200) {
-        const pdfBlob = pdfResponse.getBlob().setName(pdfFileName);
-        pdfBase64 = Utilities.base64Encode(pdfBlob.getBytes());
+        pdfBlob = pdfResponse.getBlob().setName(pdfFileName);
       } else {
-        Logger.log('Export URL returned code ' + pdfResponse.getResponseCode());
+        Logger.log('Direct export failed with code: ' + pdfResponse.getResponseCode());
       }
-    } catch (fetchErr) {
-      Logger.log('Export URL error: ' + fetchErr.toString());
+    } catch (urlErr) {
+      Logger.log('Direct export error: ' + urlErr.toString());
     }
 
-    if (!pdfBase64) {
-      const file = DriveApp.getFileById(CONFIG.SPREADSHEET_ID);
-      const pdfBlob = file.getAs('application/pdf').setName(pdfFileName);
-      pdfBase64 = Utilities.base64Encode(pdfBlob.getBytes());
+    // วิธีที่ 2 (Fallback คุ้มกัน 100%): ถ้าวิธีที่ 1 ไม่สำเร็จ
+    // จะคัดลอกเฉพาะชีต TEMP_exportToday ไปยัง Temporary Spreadsheet แผ่นใหม่
+    // เพื่อรับประกันว่าไม่มีชีตอื่นติดมาอย่างแน่นอน 100%
+    if (!pdfBlob) {
+      const tempSS = SpreadsheetApp.create('TEMP_EXPORT_' + dateCode);
+      const tempId = tempSS.getId();
+      try {
+        const copiedSheet = templateSheet.copyTo(tempSS);
+        copiedSheet.setName('TEMP_exportToday');
+
+        // ลบชีตตั้งต้น Sheet1 ออก ให้เหลือเฉพาะชีตเทมเพลตเท่านั้น
+        const initialSheets = tempSS.getSheets();
+        for (let s = 0; s < initialSheets.length; s++) {
+          if (initialSheets[s].getSheetId() !== copiedSheet.getSheetId()) {
+            tempSS.deleteSheet(initialSheets[s]);
+          }
+        }
+        SpreadsheetApp.flush();
+
+        const tempSheetId = copiedSheet.getSheetId();
+
+        // ลอง fetch จาก tempSS พร้อมระยะขอบที่กำหนด
+        try {
+          const tempExportUrl = `https://docs.google.com/spreadsheets/d/${tempId}/export?` +
+            exportQueryString + `&gid=${tempSheetId}`;
+
+          const tempResponse = UrlFetchApp.fetch(tempExportUrl, {
+            headers: {
+              'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
+            },
+            muteHttpExceptions: true
+          });
+
+          if (tempResponse.getResponseCode() === 200) {
+            pdfBlob = tempResponse.getBlob().setName(pdfFileName);
+          }
+        } catch (tempFetchErr) {
+          Logger.log('Temp export error: ' + tempFetchErr.toString());
+        }
+
+        // หากยังไม่ได้ ให้ใช้ Drive getAs บน tempSS (ซึ่งมีเฉพาะชีต TEMP_exportToday เท่านั้นแน่นอน)
+        if (!pdfBlob) {
+          const tempFile = DriveApp.getFileById(tempId);
+          pdfBlob = tempFile.getAs('application/pdf').setName(pdfFileName);
+        }
+      } finally {
+        // ลบ Temporary Spreadsheet ออกจาก Drive ทันที
+        try {
+          DriveApp.getFileById(tempId).setTrashed(true);
+        } catch (delErr) {
+          Logger.log('Failed to delete tempSS: ' + delErr.toString());
+        }
+      }
     }
+
+    if (!pdfBlob) {
+      throw new Error('ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาตรวจสอบสิทธิ์ของระบบ');
+    }
+
+    const pdfBase64 = Utilities.base64Encode(pdfBlob.getBytes());
 
     return {
       status: 'success',
