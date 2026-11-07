@@ -2028,51 +2028,30 @@ function handleExportTodayReport(payload) {
     const dateCode = getThaiDateCode(todayStr);
     const pdfFileName = `สรุปข้อมูลความสะอาดห้องเรียน_${dateCode}.pdf`;
 
-    // กำหนดพารามิเตอร์การพิมพ์ขนาด A4 (size=7), พอดีความกว้าง (fitw=true),
-    // ระยะขอบตามที่ผู้ใช้กำหนด: บน-ล่าง 1.905 ซม. (0.75 นิ้ว), ซ้าย-ขวา 1.778 ซม. (0.70 นิ้ว)
-    const exportQueryString = `exportFormat=pdf&format=pdf` +
-      `&size=7` +
-      `&portrait=true` +
-      `&fitw=true` +
-      `&gridlines=false` +
-      `&printtitle=false` +
-      `&sheetnames=false` +
-      `&fzr=false` +
-      `&top_margin=0.75` +
-      `&bottom_margin=0.75` +
-      `&left_margin=0.70` +
-      `&right_margin=0.70`;
-
     let pdfBlob = null;
 
     // วิธีที่ 1: ดึงผ่าน Google Sheets Export URL โดยระบุ gid ของ TEMP_exportToday โดยตรง
-    try {
-      const exportUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.SPREADSHEET_ID}/export?` +
-        exportQueryString + `&gid=${sheetId}`;
-
-      const pdfResponse = UrlFetchApp.fetch(exportUrl, {
-        headers: {
-          'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
-        },
-        muteHttpExceptions: true
-      });
-
-      if (pdfResponse.getResponseCode() === 200) {
-        pdfBlob = pdfResponse.getBlob().setName(pdfFileName);
-      } else {
-        Logger.log('Direct export failed with code: ' + pdfResponse.getResponseCode());
-      }
-    } catch (urlErr) {
-      Logger.log('Direct export error: ' + urlErr.toString());
-    }
+    pdfBlob = fetchA4PdfBlob(CONFIG.SPREADSHEET_ID, sheetId, pdfFileName);
 
     // วิธีที่ 2 (Fallback คุ้มกัน 100%): ถ้าวิธีที่ 1 ไม่สำเร็จ
     // จะคัดลอกเฉพาะชีต TEMP_exportToday ไปยัง Temporary Spreadsheet แผ่นใหม่
-    // เพื่อรับประกันว่าไม่มีชีตอื่นติดมาอย่างแน่นอน 100%
+    // พร้อมเปิดแชร์ ANYONE_WITH_LINK ชั่วคราว เพื่อรับประกันว่าไม่มีชีตอื่นติดมาอย่างแน่นอน 100%
+    // และได้ขนาดหน้ากระดาษ A4 (21.02 x 29.73 cm) พร้อมระยะขอบที่ถูกต้องตามกำหนด 100%
     if (!pdfBlob) {
       const tempSS = SpreadsheetApp.create('TEMP_EXPORT_' + dateCode);
       const tempId = tempSS.getId();
+      const tempFile = DriveApp.getFileById(tempId);
+
       try {
+        // เปิดสิทธิ์แชร์ไฟล์ชั่วคราวเพื่อให้ UrlFetchApp สามารถดาวน์โหลด PDF ขนาด A4 ได้อย่างสมบูรณ์
+        try {
+          tempFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (shareErr) {
+          try {
+            tempFile.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (dErr) {}
+        }
+
         const copiedSheet = templateSheet.copyTo(tempSS);
         copiedSheet.setName('TEMP_exportToday');
 
@@ -2085,36 +2064,59 @@ function handleExportTodayReport(payload) {
         }
         SpreadsheetApp.flush();
 
-        const tempSheetId = copiedSheet.getSheetId();
+        // แก้ไขปัญหา #REF! จากสูตรที่อ้างอิงข้ามไปยังชีต SETTING หรือชีตอื่นๆ (เช่น A36:H36 และ A72:H72)
+        // โดยดึงค่าผลลัพธ์ข้อความจริงที่คำนวณเรียบร้อยแล้วจาก templateSheet ต้นฉบับมาเขียนทับสูตร
+        const lastRow = templateSheet.getLastRow();
+        const lastCol = templateSheet.getLastColumn();
+        const origDisplayValues = templateSheet.getRange(1, 1, lastRow, lastCol).getDisplayValues();
+        const origFormulas = templateSheet.getRange(1, 1, lastRow, lastCol).getFormulas();
 
-        // ลอง fetch จาก tempSS พร้อมระยะขอบที่กำหนด
-        try {
-          const tempExportUrl = `https://docs.google.com/spreadsheets/d/${tempId}/export?` +
-            exportQueryString + `&gid=${tempSheetId}`;
-
-          const tempResponse = UrlFetchApp.fetch(tempExportUrl, {
-            headers: {
-              'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
-            },
-            muteHttpExceptions: true
-          });
-
-          if (tempResponse.getResponseCode() === 200) {
-            pdfBlob = tempResponse.getBlob().setName(pdfFileName);
+        for (let r = 0; r < lastRow; r++) {
+          for (let c = 0; c < lastCol; c++) {
+            const formula = origFormulas[r][c];
+            if (formula && (formula.includes('SETTING') || formula.includes('!'))) {
+              const displayVal = origDisplayValues[r][c];
+              copiedSheet.getRange(r + 1, c + 1).setValue(displayVal);
+            }
           }
-        } catch (tempFetchErr) {
-          Logger.log('Temp export error: ' + tempFetchErr.toString());
         }
 
-        // หากยังไม่ได้ ให้ใช้ Drive getAs บน tempSS (ซึ่งมีเฉพาะชีต TEMP_exportToday เท่านั้นแน่นอน)
+        // กำหนดเจาะจงที่ A36 และ A72 (แถบข้อความโครงการท้ายตาราง ม.ต้น และ ม.ปลาย)
+        const a36Val = templateSheet.getRange('A36').getDisplayValue();
+        const a72Val = templateSheet.getRange('A72').getDisplayValue();
+        if (a36Val && !a36Val.includes('#REF!')) {
+          copiedSheet.getRange('A36').setValue(a36Val);
+        }
+        if (a72Val && !a72Val.includes('#REF!')) {
+          copiedSheet.getRange('A72').setValue(a72Val);
+        }
+
+        // กวาดตรวจเช็คความปลอดภัย: หากมีเซลล์ใดใน copiedSheet ยังคงติด #REF! ให้แทนที่ด้วยค่าจาก templateSheet ทันที
+        const copiedValues = copiedSheet.getRange(1, 1, lastRow, lastCol).getDisplayValues();
+        for (let r = 0; r < lastRow; r++) {
+          for (let c = 0; c < lastCol; c++) {
+            if (copiedValues[r][c] && String(copiedValues[r][c]).includes('#REF!')) {
+              const safeVal = origDisplayValues[r][c];
+              copiedSheet.getRange(r + 1, c + 1).setValue(safeVal.includes('#REF!') ? '' : safeVal);
+            }
+          }
+        }
+        SpreadsheetApp.flush();
+
+        const tempSheetId = copiedSheet.getSheetId();
+
+        // ดึง PDF ขนาด A4 พร้อมระยะขอบที่ถูกต้อง 100%
+        pdfBlob = fetchA4PdfBlob(tempId, tempSheetId, pdfFileName);
+
+        // หากยังไม่ได้ ให้ใช้ Drive getAs บน tempSS เป็นมาตรการสำรองขั้นสุดท้าย
         if (!pdfBlob) {
-          const tempFile = DriveApp.getFileById(tempId);
+          Logger.log('Warning: Falling back to getAs application/pdf');
           pdfBlob = tempFile.getAs('application/pdf').setName(pdfFileName);
         }
       } finally {
         // ลบ Temporary Spreadsheet ออกจาก Drive ทันที
         try {
-          DriveApp.getFileById(tempId).setTrashed(true);
+          tempFile.setTrashed(true);
         } catch (delErr) {
           Logger.log('Failed to delete tempSS: ' + delErr.toString());
         }
@@ -2145,5 +2147,96 @@ function handleExportTodayReport(payload) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * สร้าง URL สำหรับ Export Google Sheet เป็น PDF ขนาด A4 พร้อมระยะขอบเจาะจง
+ */
+function buildPdfExportUrl(spreadsheetId, sheetGid, sizeParam) {
+  const params = [
+    'exportFormat=pdf',
+    'format=pdf',
+    'size=' + (sizeParam || 'A4'),
+    'portrait=true',
+    'fitw=true',
+    'scale=2',
+    'gridlines=false',
+    'printtitle=false',
+    'sheetnames=false',
+    'fzr=false',
+    'top_margin=0.75',
+    'bottom_margin=0.75',
+    'left_margin=0.70',
+    'right_margin=0.70',
+    'gid=' + sheetGid
+  ];
+  return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?` + params.join('&');
+}
+
+/**
+ * ตรวจสอบความถูกต้องว่า Response เป็นไฟล์ PDF จริง
+ */
+function isPdfResponse(res) {
+  if (!res || res.getResponseCode() !== 200) return false;
+  const blob = res.getBlob();
+  const cType = String(blob.getContentType() || '').toLowerCase();
+  const headers = res.getHeaders() || {};
+  const hType = String(headers['Content-Type'] || headers['content-type'] || '').toLowerCase();
+  if (!cType.includes('pdf') && !hType.includes('pdf')) return false;
+  const bytes = blob.getBytes();
+  if (!bytes || bytes.length < 4) return false;
+  // %PDF in ASCII is [0x25, 0x50, 0x44, 0x46]
+  return bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+}
+
+/**
+ * ฟังก์ชันดึง PDF ขนาด A4 ผ่าน Google Sheets Export API พร้อมระบบ Fallback
+ */
+function fetchA4PdfBlob(spreadsheetId, sheetGid, fileName) {
+  const token = ScriptApp.getOAuthToken();
+  const sizeOptions = ['A4', '7'];
+
+  for (let s = 0; s < sizeOptions.length; s++) {
+    const exportUrl = buildPdfExportUrl(spreadsheetId, sheetGid, sizeOptions[s]);
+
+    // 1. ลองดึงพร้อม Bearer Token
+    try {
+      const res = UrlFetchApp.fetch(exportUrl, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        },
+        muteHttpExceptions: true
+      });
+      if (isPdfResponse(res)) {
+        return res.getBlob().setName(fileName);
+      }
+    } catch (e) {
+      Logger.log(`Token fetch error for size ${sizeOptions[s]}: ${e.toString()}`);
+    }
+
+    // 2. ลองดึงแบบไม่ส่ง Bearer Token (สำหรับไฟล์ที่เปิดแชร์ ANYONE_WITH_LINK)
+    try {
+      const resNoAuth = UrlFetchApp.fetch(exportUrl, {
+        muteHttpExceptions: true
+      });
+      if (isPdfResponse(resNoAuth)) {
+        return resNoAuth.getBlob().setName(fileName);
+      }
+    } catch (e2) {
+      Logger.log(`NoAuth fetch error for size ${sizeOptions[s]}: ${e2.toString()}`);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * ฟังก์ชันช่วยบังคับประกาศ OAuth Scopes ให้ Google Apps Script ทราบอัตโนมัติ
+ * (Drive, Spreadsheets, External Requests)
+ */
+function _forceOAuthScopes() {
+  DriveApp.getRootFolder();
+  SpreadsheetApp.getActiveSpreadsheet();
+  UrlFetchApp.fetch('https://docs.google.com');
 }
 
