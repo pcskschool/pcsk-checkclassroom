@@ -249,6 +249,9 @@ function doGet(e) {
       case 'syncImages':
         return createJsonResponse(syncDriveImagesToSheetLogs());
 
+      case 'exportTodayReport':
+        return createJsonResponse(handleExportTodayReport(e && e.parameter));
+
       default:
         return createJsonResponse({
           status: 'success',
@@ -314,6 +317,9 @@ function doPost(e) {
 
       case 'syncImages':
         return createJsonResponse(syncDriveImagesToSheetLogs());
+
+      case 'exportTodayReport':
+        return createJsonResponse(handleExportTodayReport(payload));
 
       default:
         return createJsonResponse({
@@ -1845,6 +1851,240 @@ function handleGetStatsLogs(params) {
       status: 'error',
       message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสถิติ: ' + error.toString()
     };
+  }
+}
+
+/**
+ * ฟอร์แมตชื่อครูที่ปรึกษาให้อยู่ในรูป "ครู[ชื่อ]" แทนคำนำหน้าเดิมและตัดนามสกุลออก
+ * ตัวอย่าง: ["นางผกามาศ เสือคล้าย", "นายอุเทน หมื่นสุวรรณ์"] -> ครูผกามาศ, ครูอุเทน
+ */
+function formatAdvisorShortName(advisorsRaw) {
+  const list = parseJsonOrRaw(advisorsRaw);
+  if (!list) return '';
+  const arr = Array.isArray(list) ? list : [list];
+
+  const prefixes = [
+    'เด็กชาย', 'เด็กหญิง', 'ด.ช.', 'ด.ญ.',
+    'นางสาว', 'น.ส.', 'นาง', 'นาย',
+    'ว่าที่ร้อยตรีหญิง', 'ว่าที่ร้อยตรี', 'ว่าที่ ร.ต.หญิง', 'ว่าที่ ร.ต.',
+    'ดร.', 'อาจารย์', 'ครู'
+  ];
+
+  const formatted = arr.map(item => {
+    let str = String(item || '').trim();
+    if (!str) return '';
+    for (const prefix of prefixes) {
+      if (str.startsWith(prefix)) {
+        str = str.substring(prefix.length).trim();
+        break;
+      }
+    }
+    const parts = str.split(/\s+/).filter(Boolean);
+    const firstName = parts[0] || str;
+    return 'ครู' + firstName;
+  }).filter(Boolean);
+
+  return formatted.join(', ');
+}
+
+/**
+ * สร้างรหัสวันที่สำหรับชื่อไฟล์ เช่น 2026-11-07 -> 691107
+ */
+function getThaiDateCode(dateStr) {
+  try {
+    if (!dateStr) return '';
+    const parts = String(dateStr).trim().split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      const thaiYearShort = String((year + 543) % 100).padStart(2, '0');
+      const mm = String(month).padStart(2, '0');
+      const dd = String(day).padStart(2, '0');
+      return `${thaiYearShort}${mm}${dd}`;
+    }
+  } catch (e) {}
+  return '';
+}
+
+/**
+ * นำข้อมูลผลการตรวจห้องเรียนของวันนี้ไปใส่ใน Sheet TEMPLATE: TEMP_exportToday
+ * และ Export ออกเป็นไฟล์ PDF (base64) เพื่อนำไปใช้งานหรือแปลงเป็นภาพ PNG
+ */
+function handleExportTodayReport(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+
+    const todayStr = payload && payload.date_str
+      ? String(payload.date_str).trim()
+      : Utilities.formatDate(new Date(), CONFIG.TIMEZONE, 'yyyy-MM-dd');
+
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const templateSheet = ss.getSheetByName('TEMP_exportToday');
+    if (!templateSheet) {
+      return {
+        status: 'error',
+        message: 'ไม่พบชีตเทมเพลต "TEMP_exportToday" ใน Google Sheets กรุณาตรวจสอบชื่อชีต'
+      };
+    }
+
+    // 1. ดึงข้อมูลห้องเรียนจาก DB_classroom
+    const classrooms = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'DB_classroom!A:C', 0);
+
+    // 2. ดึงข้อมูลบันทึกการตรวจจาก LOG_inspections เฉพาะวันนี้ และเฉพาะ type === 'room'
+    const allLogs = getDataByHeaderAPI(CONFIG.SPREADSHEET_ID, 'LOG_inspections!A:O', 0);
+    const todayRoomLogs = allLogs.filter(log => {
+      let logDate = String(log.date_str || '').trim();
+      if (logDate.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(logDate)) {
+        logDate = logDate.slice(0, 10);
+      }
+      return logDate === todayStr && String(log.type).trim().toLowerCase() === 'room';
+    });
+
+    const roomLogMap = {};
+    const inspectorsList = [];
+    todayRoomLogs.forEach(log => {
+      const targetId = String(log.target_id || '').trim();
+      if (targetId) {
+        roomLogMap[targetId] = log;
+      }
+      const insp = String(log.inspector_name || '').trim();
+      if (insp && !inspectorsList.includes(insp)) {
+        inspectorsList.push(insp);
+      }
+    });
+
+    // 3. กำหนดวันที่และผู้ตรวจในหัวกระดาษ (A2 และ A3)
+    const dateThaiStr = formatThaiDateFull(todayStr);
+    const inspectorStr = inspectorsList.length > 0
+      ? ('ผู้ตรวจ  ' + inspectorsList.join(', '))
+      : 'ผู้ตรวจ  -';
+
+    templateSheet.getRange('A2').setValue(dateThaiStr);
+    templateSheet.getRange('A3').setValue(inspectorStr);
+
+    // 4. เตรียมข้อมูลลงตารางแต่ละระดับชั้น (ม.1 ถึง ม.6)
+    const levelRanges = [
+      { level: 'ม.1', startRow: 6, rowCount: 6 },
+      { level: 'ม.2', startRow: 15, rowCount: 6 },
+      { level: 'ม.3', startRow: 24, rowCount: 6 },
+      { level: 'ม.4', startRow: 42, rowCount: 6 },
+      { level: 'ม.5', startRow: 51, rowCount: 6 },
+      { level: 'ม.6', startRow: 60, rowCount: 6 }
+    ];
+
+    levelRanges.forEach(lvl => {
+      const levelClassrooms = classrooms.filter(c => {
+        const roomName = String(c.classroom || '').trim();
+        return roomName.startsWith(lvl.level + '/');
+      });
+
+      levelClassrooms.sort((a, b) => {
+        const roomA = String(a.classroom || '').trim();
+        const roomB = String(b.classroom || '').trim();
+        const numA = parseInt(roomA.split('/')[1] || '0', 10);
+        const numB = parseInt(roomB.split('/')[1] || '0', 10);
+        return numA - numB;
+      });
+
+      const rowsData = [];
+      for (let r = 0; r < lvl.rowCount; r++) {
+        if (r < levelClassrooms.length) {
+          const c = levelClassrooms[r];
+          const roomName = c.classroom;
+          const advisorDisplay = formatAdvisorShortName(c.advisors);
+
+          let s1 = '-', s2 = '-', s3 = '-', s4 = '-', s5 = '-';
+          const log = roomLogMap[roomName];
+          if (log) {
+            const scores = parseJsonOrRaw(log.scores_json);
+            if (Array.isArray(scores)) {
+              scores.forEach(sc => {
+                const cid = String(sc.checklist_id || '').toLowerCase();
+                const val = (sc.score !== undefined && sc.score !== null && sc.score !== '') ? sc.score : '-';
+                if (cid === 'room001') s1 = val;
+                else if (cid === 'room002') s2 = val;
+                else if (cid === 'room003') s3 = val;
+                else if (cid === 'room004') s4 = val;
+                else if (cid === 'room005') s5 = val;
+              });
+            }
+          }
+          // คอลัมน์ A ถึง G (คอลัมน์ H รวม มีสูตร Google Sheets อยู่แล้ว)
+          rowsData.push([roomName, advisorDisplay, s1, s2, s3, s4, s5]);
+        } else {
+          rowsData.push(['', '', '', '', '', '', '']);
+        }
+      }
+
+      templateSheet.getRange(lvl.startRow, 1, lvl.rowCount, 7).setValues(rowsData);
+    });
+
+    SpreadsheetApp.flush();
+
+    // 5. ส่งออกเป็น PDF ผ่าน Google Sheets Export URL
+    const sheetId = templateSheet.getSheetId();
+    const dateCode = getThaiDateCode(todayStr);
+    const pdfFileName = `สรุปข้อมูลความสะอาดห้องเรียน_${dateCode}.pdf`;
+
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.SPREADSHEET_ID}/export?` +
+      `format=pdf` +
+      `&gid=${sheetId}` +
+      `&size=A4` +
+      `&portrait=true` +
+      `&fitw=true` +
+      `&gridlines=false` +
+      `&printtitle=false` +
+      `&sheetnames=false` +
+      `&fzr=false` +
+      `&top_margin=0.25` +
+      `&bottom_margin=0.25` +
+      `&left_margin=0.25` +
+      `&right_margin=0.25`;
+
+    let pdfBase64 = '';
+    try {
+      const pdfResponse = UrlFetchApp.fetch(exportUrl, {
+        headers: {
+          'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
+        },
+        muteHttpExceptions: true
+      });
+
+      if (pdfResponse.getResponseCode() === 200) {
+        const pdfBlob = pdfResponse.getBlob().setName(pdfFileName);
+        pdfBase64 = Utilities.base64Encode(pdfBlob.getBytes());
+      } else {
+        Logger.log('Export URL returned code ' + pdfResponse.getResponseCode());
+      }
+    } catch (fetchErr) {
+      Logger.log('Export URL error: ' + fetchErr.toString());
+    }
+
+    if (!pdfBase64) {
+      const file = DriveApp.getFileById(CONFIG.SPREADSHEET_ID);
+      const pdfBlob = file.getAs('application/pdf').setName(pdfFileName);
+      pdfBase64 = Utilities.base64Encode(pdfBlob.getBytes());
+    }
+
+    return {
+      status: 'success',
+      message: 'เตรียมข้อมูลและส่งออกรายงานสำเร็จ',
+      date_str: todayStr,
+      date_code: dateCode,
+      date_thai: dateThaiStr,
+      pdf_filename: pdfFileName,
+      pdf_base64: pdfBase64
+    };
+  } catch (error) {
+    Logger.log('⚠️ เกิดข้อผิดพลาดใน handleExportTodayReport: ' + error.toString());
+    return {
+      status: 'error',
+      message: 'เกิดข้อผิดพลาดในการสร้างรายงาน: ' + error.toString()
+    };
+  } finally {
+    lock.releaseLock();
   }
 }
 
