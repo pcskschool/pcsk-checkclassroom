@@ -4788,17 +4788,94 @@
           return canvas;
         }
 
+        // ฟังก์ชันตรวจหาขอบเขตเนื้อหาจริงบน Canvas (ตัดขอบขาวว่างเปล่า)
+        function getCanvasContentBounds(canvas) {
+          const ctx = canvas.getContext("2d");
+          const width = canvas.width;
+          const height = canvas.height;
+          const imgData = ctx.getImageData(0, 0, width, height);
+          const data = imgData.data;
+
+          function isRowBlank(y) {
+            const rowOffset = y * width * 4;
+            // สุ่มตรวจทุก 4 พิกเซลตามแนวนอน เพื่อประสิทธิภาพระดับไม่กี่มิลลิวินาที
+            for (let x = 0; x < width; x += 4) {
+              const idx = rowOffset + x * 4;
+              const r = data[idx];
+              const g = data[idx + 1];
+              const b = data[idx + 2];
+              const a = data[idx + 3];
+              // หากพิกเซลไม่ใช่สีขาว (r, g, b < 248) และมีความทึบ (a > 20) ถือว่ามีเนื้อหา
+              if (a > 20 && (r < 248 || g < 248 || b < 248)) {
+                return false;
+              }
+            }
+            return true;
+          }
+
+          let top = 0;
+          while (top < height && isRowBlank(top)) {
+            top++;
+          }
+
+          let bottom = height - 1;
+          while (bottom > top && isRowBlank(bottom)) {
+            bottom--;
+          }
+
+          return { top, bottom, height: bottom - top + 1 };
+        }
+
         if (pngMode === "1") {
-          // แบบที่ 1: รวมเป็น 1 ภาพยาวต่อเนื่อง (Vertical Stitch)
+          // แบบที่ 1: รวมเป็น 1 ภาพยาวต่อเนื่อง (Vertical Stitch) พร้อมปรับช่องว่างระหว่าง ม.ต้น และ ม.ปลาย ให้แคบลงกระชับสวยงาม
           const pageCanvases = [];
           let maxWidth = 0;
-          let totalHeight = 0;
 
           for (let p = 1; p <= numPages; p++) {
             const c = await renderPage(p);
             pageCanvases.push(c);
             if (c.width > maxWidth) maxWidth = c.width;
-            totalHeight += c.height;
+          }
+
+          // คำนวณช่วงการตัดขอบพื้นที่ว่าง (Trim Whitespace) ระหว่างหน้า ม.ต้น และ ม.ปลาย
+          const slices = [];
+          let totalHeight = 0;
+          const GAP_PADDING = 20; // ระยะขอบระหว่างช่วง (พิกเซล) ให้แคบลง สบายตาและพอดี
+
+          for (let i = 0; i < pageCanvases.length; i++) {
+            const c = pageCanvases[i];
+            const bounds = getCanvasContentBounds(c);
+
+            // หน้าแรก (ม.ต้น): คงขอบบนไว้ (0) เพื่อให้หัวกระดาษและโลโก้สวยงาม ไม่ชิดขอบรูปจนเกินไป
+            // หน้าถัดไป (ม.ปลาย): ตัดขอบขาวด้านบนออก ให้เริ่มก่อนเนื้อหาเพียงเล็กน้อย (GAP_PADDING)
+            let startY = 0;
+            if (i > 0) {
+              startY = Math.max(0, bounds.top - GAP_PADDING);
+            }
+
+            // หน้าก่อนหน้า (ม.ต้น): ตัดขอบขาวด้านล่างออก ให้จบหลังเนื้อหาทันที (GAP_PADDING)
+            // หน้าสุดท้าย (ม.ปลาย): ตัดขอบขาวด้านล่างที่ว่างเปล่าออก โดยเว้นระยะขอบล่างสวยงาม
+            let endY = c.height;
+            if (i < pageCanvases.length - 1) {
+              endY = Math.min(c.height, bounds.bottom + GAP_PADDING);
+            } else {
+              endY = Math.min(c.height, bounds.bottom + 40);
+            }
+
+            // ความปลอดภัยกรณีคำนวณ bounds ไม่พบ
+            if (endY <= startY) {
+              startY = 0;
+              endY = c.height;
+            }
+
+            const sliceHeight = endY - startY;
+            slices.push({
+              canvas: c,
+              startY: startY,
+              endY: endY,
+              height: sliceHeight
+            });
+            totalHeight += sliceHeight;
           }
 
           const combinedCanvas = document.createElement("canvas");
@@ -4809,9 +4886,14 @@
           ctx.fillRect(0, 0, maxWidth, totalHeight);
 
           let currentY = 0;
-          for (const c of pageCanvases) {
-            ctx.drawImage(c, 0, currentY);
-            currentY += c.height;
+          for (const slice of slices) {
+            const offsetX = Math.floor((maxWidth - slice.canvas.width) / 2);
+            ctx.drawImage(
+              slice.canvas,
+              0, slice.startY, slice.canvas.width, slice.height,
+              offsetX, currentY, slice.canvas.width, slice.height
+            );
+            currentY += slice.height;
           }
 
           const fileName = `สรุปข้อมูลความสะอาดห้องเรียน_${dateCode}.png`;
