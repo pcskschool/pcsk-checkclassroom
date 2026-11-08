@@ -1943,26 +1943,44 @@ function handleExportTodayReport(payload) {
     });
 
     const roomLogMap = {};
-    const inspectorsList = [];
+    const juniorInspectors = [];
+    const seniorInspectors = [];
+    const allInspectors = [];
+
     todayRoomLogs.forEach(log => {
       const targetId = String(log.target_id || '').trim();
       if (targetId) {
         roomLogMap[targetId] = log;
       }
       const insp = String(log.inspector_name || '').trim();
-      if (insp && !inspectorsList.includes(insp)) {
-        inspectorsList.push(insp);
+      if (insp) {
+        if (!allInspectors.includes(insp)) allInspectors.push(insp);
+        if (/^ม\.[123]/.test(targetId)) {
+          if (!juniorInspectors.includes(insp)) juniorInspectors.push(insp);
+        } else if (/^ม\.[456]/.test(targetId)) {
+          if (!seniorInspectors.includes(insp)) seniorInspectors.push(insp);
+        }
       }
     });
 
-    // 3. กำหนดวันที่และผู้ตรวจในหัวกระดาษ (A2 และ A3)
+    // 3. กำหนดวันที่และผู้ตรวจในหัวกระดาษ (หน้า 1 ม.ต้น: A2, A3 และ หน้า 2 ม.ปลาย: A38, A39)
     const dateThaiStr = formatThaiDateFull(todayStr);
-    const inspectorStr = inspectorsList.length > 0
-      ? ('ผู้ตรวจ  ' + inspectorsList.join(', '))
-      : 'ผู้ตรวจ  -';
 
+    const juniorInspectorStr = juniorInspectors.length > 0
+      ? ('ผู้ตรวจ  ' + juniorInspectors.join(', '))
+      : (allInspectors.length > 0 ? ('ผู้ตรวจ  ' + allInspectors.join(', ')) : 'ผู้ตรวจ  -');
+
+    const seniorInspectorStr = seniorInspectors.length > 0
+      ? ('ผู้ตรวจ  ' + seniorInspectors.join(', '))
+      : (allInspectors.length > 0 ? ('ผู้ตรวจ  ' + allInspectors.join(', ')) : 'ผู้ตรวจ  -');
+
+    // หน้า 1: ม.ต้น
     templateSheet.getRange('A2').setValue(dateThaiStr);
-    templateSheet.getRange('A3').setValue(inspectorStr);
+    templateSheet.getRange('A3').setValue(juniorInspectorStr);
+
+    // หน้า 2: ม.ปลาย
+    templateSheet.getRange('A38').setValue(dateThaiStr);
+    templateSheet.getRange('A39').setValue(seniorInspectorStr);
 
     // 4. เตรียมข้อมูลลงตารางแต่ละระดับชั้น (ม.1 ถึง ม.6)
     const levelRanges = [
